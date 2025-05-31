@@ -29,8 +29,8 @@ export default function ProductFilters({
   
   const handleClearFilters = () => {
     onFiltersChange({
-      categoryId: "",
-      brandId: "",
+      categoryId: "all",
+      brandId: "all",
       search: "",
       minPrice: "",
       maxPrice: "",
@@ -96,7 +96,7 @@ export default function ProductFilters({
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as categorias</SelectItem>
+                <SelectItem value="all">Todas as categorias</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id.toString()}>
                     {category.name}
@@ -119,7 +119,7 @@ export default function ProductFilters({
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as marcas</SelectItem>
+                <SelectItem value="all">Todas as marcas</SelectItem>
                 {brands.map((brand) => (
                   <SelectItem key={brand.id} value={brand.id.toString()}>
                     {brand.name}

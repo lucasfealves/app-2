@@ -9,8 +9,8 @@ import { AlertCircle } from "lucide-react";
 
 export default function Catalog() {
   const [filters, setFilters] = useState({
-    categoryId: "",
-    brandId: "",
+    categoryId: "all",
+    brandId: "all",
     search: "",
     minPrice: "",
     maxPrice: "",

@@ -97,8 +97,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const offset = (Number(page) - 1) * Number(limit);
 
       const filters = {
-        categoryId: categoryId ? Number(categoryId) : undefined,
-        brandId: brandId ? Number(brandId) : undefined,
+        categoryId: categoryId && categoryId !== 'all' ? Number(categoryId) : undefined,
+        brandId: brandId && brandId !== 'all' ? Number(brandId) : undefined,
         search: search as string,
         minPrice: minPrice ? Number(minPrice) : undefined,
         maxPrice: maxPrice ? Number(maxPrice) : undefined,
