@@ -9,13 +9,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  AlertCircle, 
-  Shield, 
-  BarChart3, 
-  Package, 
-  Users, 
-  ShoppingCart, 
+import {
+  AlertCircle,
+  Shield,
+  BarChart3,
+  Package,
+  Users,
+  ShoppingCart,
+  Smartphone,
+  Wallet,
   CreditCard,
   TrendingUp,
   TrendingDown,
@@ -27,7 +29,7 @@ import {
   Plus,
   Search,
   Filter,
-  Download
+  Download,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -50,22 +52,26 @@ export default function Admin() {
   }, [isAuthenticated, isLoading, toast]);
 
   // Fetch admin stats
-  const { data: stats, isLoading: statsLoading, error: statsError } = useQuery({
-    queryKey: ['/api/admin/stats'],
+  const {
+    data: stats,
+    isLoading: statsLoading,
+    error: statsError,
+  } = useQuery({
+    queryKey: ["/api/admin/stats"],
     enabled: isAuthenticated,
     retry: false,
   });
 
   // Fetch recent orders
   const { data: recentOrders, isLoading: ordersLoading } = useQuery({
-    queryKey: ['/api/admin/orders/recent'],
+    queryKey: ["/api/admin/orders/recent"],
     enabled: isAuthenticated,
     retry: false,
   });
 
   // Fetch products
   const { data: products, isLoading: productsLoading } = useQuery({
-    queryKey: ['/api/products'],
+    queryKey: ["/api/products"],
     enabled: isAuthenticated,
     retry: false,
   });
@@ -129,14 +135,24 @@ export default function Admin() {
             <p className="text-sm font-medium text-gray-600">{title}</p>
             <p className="text-2xl font-bold text-gray-900">{value}</p>
             {change && (
-              <div className={`flex items-center mt-1 ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                {trend === 'up' ? <TrendingUp className="h-4 w-4 mr-1" /> : <TrendingDown className="h-4 w-4 mr-1" />}
+              <div
+                className={`flex items-center mt-1 ${trend === "up" ? "text-green-600" : "text-red-600"}`}
+              >
+                {trend === "up" ? (
+                  <TrendingUp className="h-4 w-4 mr-1" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 mr-1" />
+                )}
                 <span className="text-sm font-medium">{change}</span>
               </div>
             )}
           </div>
-          <div className={`p-3 rounded-xl ${trend === 'up' ? 'bg-green-100' : 'bg-blue-100'}`}>
-            <Icon className={`h-6 w-6 ${trend === 'up' ? 'text-green-600' : 'text-blue-600'}`} />
+          <div
+            className={`p-3 rounded-xl ${trend === "up" ? "bg-green-100" : "bg-blue-100"}`}
+          >
+            <Icon
+              className={`h-6 w-6 ${trend === "up" ? "text-green-600" : "text-blue-600"}`}
+            />
           </div>
         </div>
       </CardContent>
@@ -148,8 +164,8 @@ export default function Admin() {
       <div className="flex items-center space-x-4">
         <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
           {product.imageUrl ? (
-            <img 
-              src={product.imageUrl} 
+            <img
+              src={product.imageUrl}
               alt={product.name}
               className="w-full h-full object-cover rounded-lg"
             />
@@ -166,11 +182,28 @@ export default function Admin() {
       </div>
       <div className="flex items-center space-x-4">
         <div className="text-right">
-          <p className="font-semibold">R$ {parseFloat(product.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          <p className="font-semibold">
+            R${" "}
+            {parseFloat(product.price).toLocaleString("pt-BR", {
+              minimumFractionDigits: 2,
+            })}
+          </p>
           <p className="text-sm text-gray-600">{product.stock} em estoque</p>
         </div>
-        <Badge variant={product.stock > 10 ? "default" : product.stock > 0 ? "secondary" : "destructive"}>
-          {product.stock > 10 ? "Em estoque" : product.stock > 0 ? "Baixo" : "Fora"}
+        <Badge
+          variant={
+            product.stock > 10
+              ? "default"
+              : product.stock > 0
+                ? "secondary"
+                : "destructive"
+          }
+        >
+          {product.stock > 10
+            ? "Em estoque"
+            : product.stock > 0
+              ? "Baixo"
+              : "Fora"}
         </Badge>
         <div className="flex space-x-1">
           <Button size="sm" variant="outline">
@@ -179,7 +212,11 @@ export default function Admin() {
           <Button size="sm" variant="outline">
             <Edit className="h-4 w-4" />
           </Button>
-          <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-red-600 hover:text-red-700"
+          >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -195,24 +232,41 @@ export default function Admin() {
         </div>
         <div>
           <p className="font-medium text-gray-900">#{order.orderNumber}</p>
-          <p className="text-sm text-gray-600">{order.user?.firstName} {order.user?.lastName}</p>
+          <p className="text-sm text-gray-600">
+            {order.user?.firstName} {order.user?.lastName}
+          </p>
         </div>
       </div>
       <div className="flex items-center space-x-4">
         <div className="text-right">
-          <p className="font-semibold">R$ {parseFloat(order.total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          <p className="font-semibold">
+            R${" "}
+            {parseFloat(order.total).toLocaleString("pt-BR", {
+              minimumFractionDigits: 2,
+            })}
+          </p>
           <p className="text-sm text-gray-600">
-            {new Date(order.createdAt).toLocaleDateString('pt-BR')}
+            {new Date(order.createdAt).toLocaleDateString("pt-BR")}
           </p>
         </div>
-        <Badge variant={
-          order.status === 'delivered' ? 'default' :
-          order.status === 'shipped' ? 'secondary' :
-          order.status === 'processing' ? 'outline' : 'destructive'
-        }>
-          {order.status === 'delivered' ? 'Entregue' :
-           order.status === 'shipped' ? 'Enviado' :
-           order.status === 'processing' ? 'Processando' : 'Pendente'}
+        <Badge
+          variant={
+            order.status === "delivered"
+              ? "default"
+              : order.status === "shipped"
+                ? "secondary"
+                : order.status === "processing"
+                  ? "outline"
+                  : "destructive"
+          }
+        >
+          {order.status === "delivered"
+            ? "Entregue"
+            : order.status === "shipped"
+              ? "Enviado"
+              : order.status === "processing"
+                ? "Processando"
+                : "Pendente"}
         </Badge>
         <Button size="sm" variant="outline">
           <Eye className="h-4 w-4" />
@@ -224,7 +278,7 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <Navbar />
-      
+
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -233,8 +287,12 @@ export default function Admin() {
               <Shield className="h-8 w-8 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Painel Administrativo</h1>
-              <p className="text-gray-600">Gerencie sua loja e acompanhe métricas</p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Painel Administrativo
+              </h1>
+              <p className="text-gray-600">
+                Gerencie sua loja e acompanhe métricas
+              </p>
             </div>
           </div>
           <div className="flex space-x-3">
@@ -248,26 +306,45 @@ export default function Admin() {
             </Button>
           </div>
         </div>
-        
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
           <TabsList className="grid w-full grid-cols-5 bg-white rounded-xl p-1 material-shadow-1">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger
+              value="overview"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
               <BarChart3 className="h-4 w-4 mr-2" />
               Visão Geral
             </TabsTrigger>
-            <TabsTrigger value="products" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger
+              value="products"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
               <Package className="h-4 w-4 mr-2" />
               Produtos
             </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger
+              value="users"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
               <Users className="h-4 w-4 mr-2" />
               Usuários
             </TabsTrigger>
-            <TabsTrigger value="orders" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger
+              value="orders"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
               <ShoppingCart className="h-4 w-4 mr-2" />
               Pedidos
             </TabsTrigger>
-            <TabsTrigger value="payments" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger
+              value="payments"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
               <CreditCard className="h-4 w-4 mr-2" />
               Pagamentos
             </TabsTrigger>
@@ -306,7 +383,7 @@ export default function Admin() {
                   />
                   <StatCard
                     title="Receita Hoje"
-                    value={`R$ ${stats?.todayRevenue || '0,00'}`}
+                    value={`R$ ${stats?.todayRevenue || "0,00"}`}
                     change="+15%"
                     icon={DollarSign}
                     trend="up"
@@ -330,11 +407,13 @@ export default function Admin() {
                       <Skeleton key={i} className="h-16 w-full" />
                     ))
                   ) : recentOrders?.length > 0 ? (
-                    recentOrders.slice(0, 5).map((order) => (
-                      <OrderRow key={order.id} order={order} />
-                    ))
+                    recentOrders
+                      .slice(0, 5)
+                      .map((order) => <OrderRow key={order.id} order={order} />)
                   ) : (
-                    <p className="text-gray-500 text-center py-4">Nenhum pedido encontrado</p>
+                    <p className="text-gray-500 text-center py-4">
+                      Nenhum pedido encontrado
+                    </p>
                   )}
                 </CardContent>
               </Card>
@@ -353,12 +432,15 @@ export default function Admin() {
                     ))
                   ) : products?.length > 0 ? (
                     products.slice(0, 5).map((product) => (
-                      <div key={product.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div
+                        key={product.id}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
                             {product.imageUrl ? (
-                              <img 
-                                src={product.imageUrl} 
+                              <img
+                                src={product.imageUrl}
                                 alt={product.name}
                                 className="w-full h-full object-cover rounded-lg"
                               />
@@ -367,18 +449,31 @@ export default function Admin() {
                             )}
                           </div>
                           <div>
-                            <p className="font-medium text-sm">{product.name}</p>
-                            <p className="text-xs text-gray-600">{product.category?.name}</p>
+                            <p className="font-medium text-sm">
+                              {product.name}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              {product.category?.name}
+                            </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-semibold">R$ {parseFloat(product.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                          <p className="text-xs text-gray-600">{product.stock} estoque</p>
+                          <p className="text-sm font-semibold">
+                            R${" "}
+                            {parseFloat(product.price).toLocaleString("pt-BR", {
+                              minimumFractionDigits: 2,
+                            })}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            {product.stock} estoque
+                          </p>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-500 text-center py-4">Nenhum produto encontrado</p>
+                    <p className="text-gray-500 text-center py-4">
+                      Nenhum produto encontrado
+                    </p>
                   )}
                 </CardContent>
               </Card>
@@ -441,7 +536,9 @@ export default function Admin() {
               <CardContent>
                 <div className="text-center py-12">
                   <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">Funcionalidade de usuários em desenvolvimento</p>
+                  <p className="text-gray-500">
+                    Funcionalidade de usuários em desenvolvimento
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -523,7 +620,9 @@ export default function Admin() {
               <CardContent>
                 <div className="text-center py-12">
                   <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">Relatórios detalhados de pagamento em desenvolvimento</p>
+                  <p className="text-gray-500">
+                    Relatórios detalhados de pagamento em desenvolvimento
+                  </p>
                 </div>
               </CardContent>
             </Card>
