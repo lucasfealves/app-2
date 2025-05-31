@@ -81,108 +81,132 @@ export default function ProductCard({ product }: ProductCardProps) {
     : 0;
 
   return (
-    <Card className="group material-shadow-1 hover:material-shadow-2 transition-all duration-300 overflow-hidden">
+    <Card className="group bg-white rounded-2xl material-shadow-1 hover:material-shadow-3 transition-all duration-300 overflow-hidden border-0">
       {/* Product Image */}
-      <div className="relative aspect-square bg-gray-100 overflow-hidden">
+      <div className="relative aspect-[4/3] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
         {product.imageUrl ? (
           <img 
             src={product.imageUrl} 
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400">
-            <ShoppingCart className="h-16 w-16" />
+            <ShoppingCart className="h-12 w-12" />
           </div>
         )}
         
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
         {/* Discount Badge */}
         {discountPercentage > 0 && (
-          <Badge className="absolute top-2 left-2 bg-green-500 text-white">
-            {discountPercentage}% OFF
-          </Badge>
-        )}
-
-        {/* Stock Status */}
-        {product.stock === 0 && (
-          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <Badge variant="destructive" className="text-lg py-2 px-4">
-              Fora de Estoque
+          <div className="absolute top-3 left-3">
+            <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 font-semibold px-2 py-1 text-xs">
+              -{discountPercentage}%
             </Badge>
           </div>
         )}
 
-        {/* Quick Actions */}
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 space-y-2">
-          <Button size="icon" variant="secondary" className="bg-white/90 hover:bg-white">
-            <Heart className="h-4 w-4" />
+        {/* Stock Status */}
+        {product.stock === 0 && (
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
+            <div className="bg-white rounded-lg px-4 py-2">
+              <span className="text-gray-900 font-medium">Fora de Estoque</span>
+            </div>
+          </div>
+        )}
+
+        {/* Quick Actions - Mobile Friendly */}
+        <div className="absolute top-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+          <Button size="icon" variant="secondary" className="bg-white/95 hover:bg-white shadow-lg border-0 w-9 h-9">
+            <Heart className="h-4 w-4 text-gray-700" />
           </Button>
-          <Link href={`/product/${product.id}`}>
-            <Button size="icon" variant="secondary" className="bg-white/90 hover:bg-white">
-              <Eye className="h-4 w-4" />
-            </Button>
-          </Link>
         </div>
       </div>
 
       <CardContent className="p-4 space-y-3">
+        {/* Brand & Category */}
+        {product.brand && (
+          <div className="flex items-center justify-between">
+            <Badge variant="outline" className="text-xs font-medium text-blue-600 border-blue-200 bg-blue-50">
+              {product.brand.name}
+            </Badge>
+            {product.stock > 0 && product.stock <= 5 && (
+              <span className="text-xs text-orange-600 font-medium">Últimas unidades</span>
+            )}
+          </div>
+        )}
+
         {/* Product Info */}
         <div>
-          <h3 className="text-lg font-medium text-gray-900 line-clamp-2 mb-1">
-            {product.name}
-          </h3>
-          {product.brand && (
-            <p className="text-sm text-gray-600">{product.brand.name}</p>
-          )}
+          <Link href={`/product/${product.id}`}>
+            <h3 className="text-base font-semibold text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors cursor-pointer">
+              {product.name}
+            </h3>
+          </Link>
           {product.shortDescription && (
-            <p className="text-sm text-gray-500 line-clamp-2 mt-1">
+            <p className="text-sm text-gray-600 line-clamp-2 mt-1 leading-relaxed">
               {product.shortDescription}
             </p>
           )}
         </div>
 
-        {/* Rating */}
-        <div className="flex items-center space-x-1">
-          <div className="flex text-yellow-400">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="h-4 w-4 fill-current" />
-            ))}
+        {/* Rating & Reviews */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-1">
+            <div className="flex text-yellow-400">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="h-3.5 w-3.5 fill-current" />
+              ))}
+            </div>
+            <span className="text-xs text-gray-500 ml-1">(127)</span>
           </div>
-          <span className="text-sm text-gray-600">(4.5)</span>
+          <span className="text-xs text-green-600 font-medium">Frete Grátis</span>
         </div>
 
         {/* Price */}
         <div className="space-y-1">
-          <div className="flex items-baseline space-x-2">
-            <span className="text-2xl font-bold text-blue-600">
-              R$ {parseFloat(product.price).toFixed(2)}
+          <div className="flex items-center space-x-2">
+            <span className="text-xl font-bold text-gray-900">
+              R$ {parseFloat(product.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </span>
             {product.originalPrice && (
-              <span className="text-lg text-gray-500 line-through">
-                R$ {parseFloat(product.originalPrice).toFixed(2)}
+              <span className="text-sm text-gray-500 line-through">
+                R$ {parseFloat(product.originalPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             )}
           </div>
-          <p className="text-sm text-gray-600">
-            Em até 12x de R$ {(parseFloat(product.price) / 12).toFixed(2)}
+          <p className="text-xs text-gray-600">
+            ou 12x de R$ {(parseFloat(product.price) / 12).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} sem juros
           </p>
         </div>
 
         {/* Actions */}
-        <div className="flex space-x-2">
-          <Link href={`/product/${product.id}`} className="flex-1">
-            <Button variant="outline" className="w-full">
-              <Eye className="mr-2 h-4 w-4" />
-              Ver Detalhes
-            </Button>
-          </Link>
+        <div className="pt-2 space-y-2">
           <Button 
             onClick={handleAddToCart}
             disabled={product.stock === 0 || addToCartMutation.isPending}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-xl transition-colors"
+            size="sm"
           >
-            <ShoppingCart className="h-4 w-4" />
+            {addToCartMutation.isPending ? (
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Adicionando...</span>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <ShoppingCart className="h-4 w-4" />
+                <span>Adicionar ao Carrinho</span>
+              </div>
+            )}
           </Button>
+          <Link href={`/product/${product.id}`} className="block">
+            <Button variant="outline" className="w-full border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl">
+              Ver Detalhes
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>
