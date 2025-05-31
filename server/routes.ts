@@ -332,7 +332,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/orders', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { shippingAddress, paymentMethod } = req.body;
+      const { shippingAddress, paymentMethod, shippingMethod, creditCard } = req.body;
+
+      if (!shippingAddress || !paymentMethod) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
 
       // Get user's cart
       const cart = await storage.getUserCart(userId);
@@ -345,23 +349,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Cart is empty" });
       }
 
-      // Calculate total
-      const totalAmount = cartItems.reduce((sum, item) => {
+      // Calculate totals
+      const subtotal = cartItems.reduce((sum, item) => {
         return sum + (parseFloat(item.product.price) * item.quantity);
       }, 0);
+      
+      const shippingCost = shippingMethod?.price || 0;
+      const discount = paymentMethod === 'pix' ? subtotal * 0.05 : 0;
+      const total = subtotal + shippingCost - discount;
 
       // Generate order number
-      const orderNumber = `ORD-${Date.now()}`;
+      const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
       // Create order
       const order = await storage.createOrder({
         userId,
         orderNumber,
-        totalAmount: totalAmount.toFixed(2),
-        shippingAddress,
-        paymentMethod,
+        total: total.toString(),
         status: 'pending',
-        paymentStatus: 'pending'
+        shippingAddress: JSON.stringify(shippingAddress),
+        paymentMethod,
       });
 
       // Create order items
@@ -371,22 +378,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
           productId: item.productId,
           quantity: item.quantity,
           price: item.product.price,
-          variantId: item.variantId
         });
       }
 
-      // Clear cart
-      await storage.clearCart(cart.id);
+      // Generate PIX code for PIX payments
+      let pixCode = null;
+      if (paymentMethod === 'pix') {
+        pixCode = `00020126360014BR.GOV.BCB.PIX0114+55119999999990204000053039865802BR5925LOJA EXEMPLO6009SAO PAULO61080540900062070503***6304${Math.random().toString(36).substr(2, 9)}`;
+      }
 
       // Create payment record
       await storage.createPayment({
         orderId: order.id,
-        amount: totalAmount.toFixed(2),
+        amount: total.toString(),
         method: paymentMethod,
-        status: 'pending'
+        status: paymentMethod === 'pix' ? 'pending' : 'processing',
       });
 
-      res.status(201).json(order);
+      // Clear cart
+      await storage.clearCart(cart.id);
+
+      res.status(201).json({ 
+        ...order, 
+        ...(pixCode ? { pixCode } : {}),
+        total: total.toString(),
+        subtotal: subtotal.toString(),
+        shippingCost: shippingCost.toString(),
+        discount: discount.toString()
+      });
     } catch (error) {
       console.error("Error creating order:", error);
       res.status(500).json({ message: "Failed to create order" });
@@ -470,6 +489,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching admin stats:", error);
       res.status(500).json({ message: "Failed to fetch admin stats" });
+    }
+  });
+
+  // Admin recent orders
+  app.get('/api/admin/orders/recent', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const orders = await storage.getOrders({ limit: 10, offset: 0 });
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching recent orders:", error);
+      res.status(500).json({ message: "Failed to fetch recent orders" });
     }
   });
 
