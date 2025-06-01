@@ -200,7 +200,7 @@ export default function OrdersTable() {
                         </Button>
                         {order.status !== 'delivered' && order.status !== 'cancelled' && (
                           <Select 
-                            value={order.status}
+                            value={order.status || 'pending'}
                             onValueChange={(value) => handleStatusUpdate(order.id, value)}
                           >
                             <SelectTrigger className="w-32 h-8">
