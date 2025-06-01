@@ -11,8 +11,8 @@ import { DollarSign, CreditCard, Smartphone, AlertCircle } from "lucide-react";
 
 export default function PaymentsOverview() {
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState("");
-  const [methodFilter, setMethodFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [methodFilter, setMethodFilter] = useState("all");
   const limit = 10;
 
   const { data: payments, isLoading, error } = useQuery({
@@ -21,8 +21,8 @@ export default function PaymentsOverview() {
       const params = new URLSearchParams();
       params.append('page', page.toString());
       params.append('limit', limit.toString());
-      if (statusFilter) params.append('status', statusFilter);
-      if (methodFilter) params.append('method', methodFilter);
+      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
+      if (methodFilter && methodFilter !== 'all') params.append('method', methodFilter);
       
       const response = await fetch(`/api/payments?${params}`);
       if (!response.ok) throw new Error('Failed to fetch payments');
@@ -175,7 +175,7 @@ export default function PaymentsOverview() {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="completed">Aprovado</SelectItem>
                   <SelectItem value="pending">Pendente</SelectItem>
                   <SelectItem value="failed">Falhou</SelectItem>
@@ -186,7 +186,7 @@ export default function PaymentsOverview() {
                   <SelectValue placeholder="Método" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="pix">PIX</SelectItem>
                   <SelectItem value="credit">Cartão</SelectItem>
                   <SelectItem value="google-pay">Google Pay</SelectItem>
