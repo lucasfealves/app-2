@@ -36,7 +36,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -65,7 +65,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -120,7 +120,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const productId = Number(req.params.id);
       const product = await storage.getProduct(productId);
-      
+
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
@@ -135,9 +135,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/products', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -155,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -163,7 +163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const productId = Number(req.params.id);
       const productData = insertProductSchema.partial().parse(req.body);
       const product = await storage.updateProduct(productId, productData);
-      
+
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
@@ -179,14 +179,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const productId = Number(req.params.id);
       const success = await storage.deleteProduct(productId);
-      
+
       if (!success) {
         return res.status(404).json({ message: "Product not found" });
       }
@@ -203,7 +203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       let cart = await storage.getUserCart(userId);
-      
+
       if (!cart) {
         cart = await storage.createCart({ userId });
       }
@@ -220,7 +220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       let cart = await storage.getUserCart(userId);
-      
+
       if (!cart) {
         cart = await storage.createCart({ userId });
       }
@@ -244,9 +244,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const itemId = Number(req.params.id);
       const { quantity } = req.body;
-      
+
       const cartItem = await storage.updateCartItem(itemId, Number(quantity));
-      
+
       if (!cartItem) {
         return res.status(404).json({ message: "Cart item not found" });
       }
@@ -262,7 +262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const itemId = Number(req.params.id);
       const success = await storage.removeFromCart(itemId);
-      
+
       if (!success) {
         return res.status(404).json({ message: "Cart item not found" });
       }
@@ -279,19 +279,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       const filters: any = {};
-      
+
       if (!user?.isAdmin) {
         filters.userId = userId;
       } else if (req.query.userId) {
         filters.userId = req.query.userId as string;
       }
-      
+
       if (req.query.status) {
         filters.status = req.query.status as string;
       }
-      
+
       const page = Number(req.query.page) || 1;
       const limit = Number(req.query.limit) || 20;
       filters.offset = (page - 1) * limit;
@@ -309,14 +309,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const orderId = Number(req.params.id);
       const order = await storage.getOrder(orderId);
-      
+
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
 
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin && order.userId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -353,7 +353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const subtotal = cartItems.reduce((sum, item) => {
         return sum + (parseFloat(item.product.price) * item.quantity);
       }, 0);
-      
+
       const shippingCost = shippingMethod?.price || 0;
       const discount = paymentMethod === 'pix' ? subtotal * 0.05 : 0;
       const total = subtotal + shippingCost - discount;
@@ -416,16 +416,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const orderId = Number(req.params.id);
       const { status } = req.body;
-      
+
       const order = await storage.updateOrderStatus(orderId, status);
-      
+
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
@@ -442,25 +442,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const filters: any = {};
-      
+
       if (req.query.orderId) {
         filters.orderId = Number(req.query.orderId);
       }
-      
+
       if (req.query.status) {
         filters.status = req.query.status as string;
       }
-      
+
       if (req.query.method) {
         filters.method = req.query.method as string;
       }
-      
+
       const page = Number(req.query.page) || 1;
       const limit = Number(req.query.limit) || 20;
       filters.offset = (page - 1) * limit;
@@ -479,7 +479,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -497,7 +497,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -515,21 +515,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const period = req.query.period || '30';
       const daysAgo = parseInt(period as string);
-      
+
       // Get stats and detailed analytics
       const [stats, topProducts, revenueByCategory] = await Promise.all([
         storage.getAdminStats(),
         storage.getTopProducts(5),
         storage.getRevenueByCategory()
       ]);
-      
+
       const analytics = {
         totalRevenue: parseFloat(stats.totalRevenue || '0').toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
         revenueChange: '+15.3%',

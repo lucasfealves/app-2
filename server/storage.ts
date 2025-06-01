@@ -116,6 +116,10 @@ export interface IStorage {
     // Analytics
     getTopProducts(limit?: number): Promise<any[]>;
     getRevenueByCategory(): Promise<any[]>;
+
+    // Auth methods
+    createUser(userData: { email: string; password: string; firstName: string; lastName: string }): Promise<User>;
+    getUserByEmail(email: string): Promise<User | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -508,6 +512,17 @@ export class DatabaseStorage implements IStorage {
     }
     async getRevenueByCategory(): Promise<any[]> {
       return [];
+    }
+
+    async createUser(userData: { email: string; password: string; firstName: string; lastName: string }): Promise<User> {
+        const userId = crypto.randomUUID();
+        const [newUser] = await db.insert(users).values({ id: userId, ...userData }).returning();
+        return newUser;
+    }
+
+    async getUserByEmail(email: string): Promise<User | undefined> {
+        const [user] = await db.select().from(users).where(eq(users.email, email));
+        return user;
     }
 }
 
