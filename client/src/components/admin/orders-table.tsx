@@ -15,7 +15,7 @@ export default function OrdersTable() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const limit = 10;
 
   const { data: orders, isLoading, error } = useQuery({
@@ -24,7 +24,7 @@ export default function OrdersTable() {
       const params = new URLSearchParams();
       params.append('page', page.toString());
       params.append('limit', limit.toString());
-      if (statusFilter) params.append('status', statusFilter);
+      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
       
       const response = await fetch(`/api/orders?${params}`);
       if (!response.ok) throw new Error('Failed to fetch orders');
@@ -134,7 +134,7 @@ export default function OrdersTable() {
               <SelectValue placeholder="Filtrar por status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os status</SelectItem>
+              <SelectItem value="all">Todos os status</SelectItem>
               <SelectItem value="pending">Pendente</SelectItem>
               <SelectItem value="processing">Em Andamento</SelectItem>
               <SelectItem value="shipped">Enviado</SelectItem>
