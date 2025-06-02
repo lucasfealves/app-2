@@ -28,6 +28,9 @@ async function main() {
       
       CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON sessions (expire);
 
+      -- Drop users table if exists to recreate with correct structure
+      DROP TABLE IF EXISTS users CASCADE;
+      
       -- Create users table
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
