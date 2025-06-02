@@ -281,7 +281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Cart routes
   app.get('/api/cart', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       let cart = await storage.getUserCart(userId);
 
       if (!cart) {
@@ -357,8 +357,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Orders routes
   app.get('/api/orders', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
+      const userId = user.id;
 
       const filters: any = {};
 
@@ -520,8 +520,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Payments routes
   app.get('/api/payments', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
 
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
@@ -557,8 +556,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin stats
   app.get('/api/admin/stats', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
 
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
@@ -575,8 +573,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin recent orders
   app.get('/api/admin/orders/recent', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
 
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
@@ -593,8 +590,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin analytics
   app.get('/api/admin/analytics', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
 
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });

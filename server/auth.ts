@@ -1,4 +1,3 @@
-
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import type { Express, RequestHandler } from "express";
@@ -18,7 +17,7 @@ export function getSession() {
     ttl: sessionTtl,
     tableName: "sessions",
   });
-  
+
   return session({
     secret: SESSION_SECRET,
     store: sessionStore,
@@ -57,23 +56,26 @@ export async function setupAuth(app: Express) {
   app.use(getSession());
 }
 
-export const isAuthenticated: RequestHandler = async (req: any, res, next) => {
-  const token = req.headers.authorization?.replace('Bearer ', '') || req.session.token;
-  
-  if (!token) {
-    return res.status(401).json({ message: "Token não fornecido" });
-  }
+export const isAuthenticated = async (req: any, res: any, next: any) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
 
-  const decoded = verifyToken(token);
-  if (!decoded) {
+    if (!token) {
+      return res.status(401).json({ message: "Token não fornecido" });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const user = await storage.getUser(decoded.userId);
+
+    if (!user) {
+      return res.status(401).json({ message: "Usuário não encontrado" });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error("Auth error:", error);
     return res.status(401).json({ message: "Token inválido" });
   }
-
-  const user = await storage.getUser(decoded.userId);
-  if (!user) {
-    return res.status(401).json({ message: "Usuário não encontrado" });
-  }
-
-  req.user = user;
-  next();
 };

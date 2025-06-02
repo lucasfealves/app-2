@@ -1,8 +1,8 @@
-
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { migrate } from 'drizzle-orm/neon-serverless/migrator';
 import ws from "ws";
+import crypto from "crypto";
 
 neonConfig.webSocketConstructor = ws;
 
@@ -15,7 +15,7 @@ const db = drizzle({ client: pool });
 
 async function main() {
   console.log("Running migrations...");
-  
+
   try {
     // Create tables manually since we don't have migration files
     await pool.query(`
@@ -25,12 +25,12 @@ async function main() {
         sess JSONB NOT NULL,
         expire TIMESTAMP NOT NULL
       );
-      
+
       CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON sessions (expire);
 
       -- Drop users table if exists to recreate with correct structure
       DROP TABLE IF EXISTS users CASCADE;
-      
+
       -- Create users table
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
@@ -146,8 +146,24 @@ async function main() {
       );
     `);
 
-    console.log("✅ All tables created successfully!");
-    
+    // Create default admin user if not exists
+      const adminEmail = 'admin@example.com';
+      const adminExists = await db.query('SELECT id FROM users WHERE email = $1', [adminEmail]);
+
+      if (adminExists.rows.length === 0) {
+        const adminId = crypto.randomUUID();
+        const hashedPassword = await require('bcryptjs').hash('admin123', 10);
+
+        await db.query(`
+          INSERT INTO users (id, email, password, first_name, last_name, is_admin) 
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `, [adminId, adminEmail, hashedPassword, 'Admin', 'User', true]);
+
+        console.log('✅ Default admin user created (admin@example.com / admin123)');
+      }
+
+      console.log('✅ All tables created successfully!');
+
   } catch (error) {
     console.error("❌ Migration failed:", error);
     process.exit(1);
