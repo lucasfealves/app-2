@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAdminOrders } from "@/hooks/useAdminQueries";
 import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,23 +19,18 @@ export default function OrdersTable() {
   const [statusFilter, setStatusFilter] = useState("all");
   const limit = 10;
 
-  const { data: orders, isLoading, error } = useQuery({
-    queryKey: ['/api/orders', { page, limit, status: statusFilter }],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      params.append('page', page.toString());
-      params.append('limit', limit.toString());
-      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
-      
-      const response = await fetch(`/api/orders?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch orders');
-      return response.json();
-    }
+  const { data: orders, isLoading, error } = useAdminOrders({
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+    page,
+    limit
   });
 
   const updateOrderStatusMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: number; status: string }) => {
-      await apiRequest('PUT', `/api/orders/${orderId}/status`, { status });
+      return apiRequest(`/api/orders/${orderId}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status })
+      });
     },
     onSuccess: () => {
       toast({

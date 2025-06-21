@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useAdminPayments } from "@/hooks/useAdminQueries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,19 +15,11 @@ export default function PaymentsOverview() {
   const [methodFilter, setMethodFilter] = useState("all");
   const limit = 10;
 
-  const { data: payments, isLoading, error } = useQuery({
-    queryKey: ['/api/payments', { page, limit, status: statusFilter, method: methodFilter }],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      params.append('page', page.toString());
-      params.append('limit', limit.toString());
-      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
-      if (methodFilter && methodFilter !== 'all') params.append('method', methodFilter);
-      
-      const response = await fetch(`/api/payments?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch payments');
-      return response.json();
-    }
+  const { data: payments, isLoading, error } = useAdminPayments({
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+    method: methodFilter !== 'all' ? methodFilter : undefined,
+    page,
+    limit
   });
 
   // Calculate totals (this would be better from a dedicated endpoint)
