@@ -35,6 +35,31 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
   return response.json();
 }
 
+// Create a query function that always includes authentication headers
+const defaultQueryFn: QueryFunction = async ({ queryKey }) => {
+  const token = localStorage.getItem('token');
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(queryKey[0] as string, {
+    credentials: "include",
+    headers,
+  });
+
+  if (res.status === 401) {
+    localStorage.removeItem('token');
+    throw new Error('Unauthorized');
+  }
+
+  await throwIfResNotOk(res);
+  return await res.json();
+};
+
 // Update the default query function to include authentication
 type UnauthorizedBehavior = "returnNull" | "throw";
 export const getQueryFn: <T>(options: {
@@ -57,7 +82,13 @@ export const getQueryFn: <T>(options: {
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+      localStorage.removeItem('token');
       return null;
+    }
+
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      throw new Error('Unauthorized');
     }
 
     await throwIfResNotOk(res);
@@ -67,11 +98,15 @@ export const getQueryFn: <T>(options: {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
+      queryFn: defaultQueryFn,
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: (failureCount, error) => {
+        // Don't retry on auth errors
+        if (error.message === 'Unauthorized') return false;
+        return failureCount < 3;
+      },
     },
     mutations: {
       retry: false,

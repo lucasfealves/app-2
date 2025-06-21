@@ -63,12 +63,13 @@ export const isAuthenticated = async (req: any, res: any, next: any) => {
     
     if (token?.startsWith('Bearer ')) {
       token = token.slice(7);
-    } else if (!token) {
-      // If no Authorization header, try to get from localStorage via custom header
+    } else {
+      // If no Authorization header, try custom header
       token = req.headers['x-auth-token'];
     }
 
     if (!token) {
+      console.log('No token provided in request headers');
       return res.status(401).json({ message: "Token não fornecido" });
     }
 
@@ -76,7 +77,13 @@ export const isAuthenticated = async (req: any, res: any, next: any) => {
     const user = await storage.getUser(decoded.userId);
 
     if (!user) {
+      console.log('User not found for token:', decoded.userId);
       return res.status(401).json({ message: "Usuário não encontrado" });
+    }
+
+    if (user.isBlocked) {
+      console.log('User is blocked:', user.id);
+      return res.status(403).json({ message: "Usuário bloqueado" });
     }
 
     req.user = user;

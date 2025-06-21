@@ -465,9 +465,12 @@ export class DatabaseStorage implements IStorage {
     totalUsers: number;
     todayOrders: number;
     todayRevenue: string;
+    totalOrders: number;
+    totalRevenue: string;
   }> {
     const totalProducts = await db.$count(products, eq(products.isActive, true));
     const totalUsers = await db.$count(users, eq(users.isBlocked, false));
+    const totalOrders = await db.$count(orders);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -490,11 +493,22 @@ export class DatabaseStorage implements IStorage {
         and(
           gte(orders.createdAt, today),
           lte(orders.createdAt, tomorrow),
-          eq(orders.paymentStatus, 'completed')
+          eq(orders.status, 'completed')
         )
       );
 
+    const totalRevenueResult = await db
+      .select({
+        total: orders.totalAmount
+      })
+      .from(orders)
+      .where(eq(orders.status, 'completed'));
+
     const todayRevenue = todayRevenueResult
+      .reduce((sum, order) => sum + parseFloat(order.total), 0)
+      .toFixed(2);
+
+    const totalRevenue = totalRevenueResult
       .reduce((sum, order) => sum + parseFloat(order.total), 0)
       .toFixed(2);
 
@@ -503,6 +517,8 @@ export class DatabaseStorage implements IStorage {
       totalUsers,
       todayOrders,
       todayRevenue,
+      totalOrders,
+      totalRevenue,
     };
   }
 
