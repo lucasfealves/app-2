@@ -148,6 +148,7 @@ This is a full-stack e-commerce application built with React, Express.js, and Po
 
 ## Changelog
 - June 21, 2025. Initial setup
+- June 21, 2025. Added multi-tenant support with complete tenant management system
 
 ## User Preferences
 

@@ -769,6 +769,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Admin access required" });
       }
 
+      const { insertTenantSchema } = await import("@shared/schema");
       const tenantData = insertTenantSchema.parse(req.body);
       const tenant = await storage.createTenant(tenantData);
       res.status(201).json(tenant);
@@ -790,6 +791,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const tenantId = Number(req.params.id);
+      const { insertTenantSchema } = await import("@shared/schema");
       const tenantData = insertTenantSchema.partial().parse(req.body);
       const tenant = await storage.updateTenant(tenantId, tenantData);
 

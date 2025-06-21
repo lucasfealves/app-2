@@ -27,6 +27,7 @@ import UsersTable from "@/components/admin/users-table";
 import PaymentsOverview from "@/components/admin/payments-overview";
 import CategoriesBrandsTable from "@/components/admin/categories-brands-table";
 import AnalyticsDashboard from "@/components/admin/analytics-dashboard";
+import TenantsTable from "@/components/admin/tenants-table";
 
 export default function Admin() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -118,7 +119,7 @@ export default function Admin() {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-7 bg-white rounded-xl p-1 material-shadow-1">
+          <TabsList className="grid w-full grid-cols-8 bg-white rounded-xl p-1 material-shadow-1">
             <TabsTrigger
               value="overview"
               className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
@@ -168,6 +169,13 @@ export default function Admin() {
               <BarChart3 className="h-4 w-4 mr-2" />
               Análises
             </TabsTrigger>
+            <TabsTrigger
+              value="tenants"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Tenants
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -203,6 +211,11 @@ export default function Admin() {
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
             <AnalyticsDashboard />
+          </TabsContent>
+
+          {/* Tenants Tab */}
+          <TabsContent value="tenants" className="space-y-6">
+            <TenantsTable />
           </TabsContent>
         </Tabs>
       </div>

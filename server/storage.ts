@@ -145,34 +145,6 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  // Tenant operations
-  async getTenants(): Promise<Tenant[]> {
-    return await db.select().from(tenants).where(eq(tenants.isActive, true));
-  }
-
-  async getTenant(id: string): Promise<Tenant | undefined> {
-    const [tenant] = await db.select().from(tenants).where(eq(tenants.id, id));
-    return tenant;
-  }
-
-  async getTenantBySlug(slug: string): Promise<Tenant | undefined> {
-    const [tenant] = await db.select().from(tenants).where(eq(tenants.slug, slug));
-    return tenant;
-  }
-
-  async createTenant(tenant: InsertTenant): Promise<Tenant> {
-    const [newTenant] = await db.insert(tenants).values(tenant).returning();
-    return newTenant;
-  }
-
-  async updateTenant(id: string, tenant: Partial<InsertTenant>): Promise<Tenant | undefined> {
-    const [updatedTenant] = await db
-      .update(tenants)
-      .set({ ...tenant, updatedAt: new Date() })
-      .where(eq(tenants.id, id))
-      .returning();
-    return updatedTenant;
-  }
 
   // User operations (IMPORTANT) these user operations are mandatory for Replit Auth.
   async getUser(id: string): Promise<User | undefined> {
