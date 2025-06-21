@@ -124,8 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/categories', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
 
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
@@ -153,8 +152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/brands', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
 
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
@@ -243,8 +241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/products/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
 
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
@@ -267,8 +264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/products/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
 
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
@@ -308,7 +304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/cart/items', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       let cart = await storage.getUserCart(userId);
 
       if (!cart) {
@@ -404,10 +400,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Order not found" });
       }
 
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
 
-      if (!user?.isAdmin && order.userId !== userId) {
+      if (!user?.isAdmin && order.userId !== user.id) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -421,7 +416,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/orders', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { shippingAddress, paymentMethod, shippingMethod, creditCard } = req.body;
 
       if (!shippingAddress || !paymentMethod) {
@@ -504,8 +499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/orders/:id/status', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
 
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });

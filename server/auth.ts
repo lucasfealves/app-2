@@ -58,8 +58,15 @@ export async function setupAuth(app: Express) {
 
 export const isAuthenticated = async (req: any, res: any, next: any) => {
   try {
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+    // Try to get token from Authorization header first
+    let token = req.headers.authorization;
+    
+    if (token?.startsWith('Bearer ')) {
+      token = token.slice(7);
+    } else if (!token) {
+      // If no Authorization header, try to get from localStorage via custom header
+      token = req.headers['x-auth-token'];
+    }
 
     if (!token) {
       return res.status(401).json({ message: "Token não fornecido" });
