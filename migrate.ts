@@ -1,8 +1,9 @@
+
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import { Pool, neonConfig } from '@neondatabase/serverless';
-import { migrate } from 'drizzle-orm/neon-serverless/migrator';
 import ws from "ws";
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 
 neonConfig.webSocketConstructor = ws;
 
@@ -17,22 +18,34 @@ async function main() {
   console.log("Running migrations...");
 
   try {
-    // Create tables manually since we don't have migration files
+    // Drop all tables to start fresh
     await pool.query(`
-      -- Create sessions table (required for Replit Auth)
-      CREATE TABLE IF NOT EXISTS sessions (
+      DROP TABLE IF EXISTS payments CASCADE;
+      DROP TABLE IF EXISTS order_items CASCADE;
+      DROP TABLE IF EXISTS orders CASCADE;
+      DROP TABLE IF EXISTS cart_items CASCADE;
+      DROP TABLE IF EXISTS carts CASCADE;
+      DROP TABLE IF EXISTS product_variants CASCADE;
+      DROP TABLE IF EXISTS products CASCADE;
+      DROP TABLE IF EXISTS brands CASCADE;
+      DROP TABLE IF EXISTS categories CASCADE;
+      DROP TABLE IF EXISTS users CASCADE;
+      DROP TABLE IF EXISTS sessions CASCADE;
+    `);
+
+    // Create sessions table (required for Replit Auth)
+    await pool.query(`
+      CREATE TABLE sessions (
         sid VARCHAR PRIMARY KEY,
         sess JSONB NOT NULL,
         expire TIMESTAMP NOT NULL
       );
+      CREATE INDEX "IDX_session_expire" ON sessions (expire);
+    `);
 
-      CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON sessions (expire);
-
-      -- Drop users table if exists to recreate with correct structure
-      DROP TABLE IF EXISTS users CASCADE;
-
-      -- Create users table
-      CREATE TABLE IF NOT EXISTS users (
+    // Create users table
+    await pool.query(`
+      CREATE TABLE users (
         id TEXT PRIMARY KEY,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
@@ -44,25 +57,31 @@ async function main() {
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       );
+    `);
 
-      -- Create categories table
-      CREATE TABLE IF NOT EXISTS categories (
+    // Create categories table
+    await pool.query(`
+      CREATE TABLE categories (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         slug VARCHAR(255) NOT NULL UNIQUE,
         created_at TIMESTAMP DEFAULT NOW()
       );
+    `);
 
-      -- Create brands table
-      CREATE TABLE IF NOT EXISTS brands (
+    // Create brands table
+    await pool.query(`
+      CREATE TABLE brands (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         slug VARCHAR(255) NOT NULL UNIQUE,
         created_at TIMESTAMP DEFAULT NOW()
       );
+    `);
 
-      -- Create products table
-      CREATE TABLE IF NOT EXISTS products (
+    // Create products table
+    await pool.query(`
+      CREATE TABLE products (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         slug VARCHAR(255) NOT NULL UNIQUE,
@@ -80,9 +99,11 @@ async function main() {
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       );
+    `);
 
-      -- Create product_variants table
-      CREATE TABLE IF NOT EXISTS product_variants (
+    // Create product_variants table
+    await pool.query(`
+      CREATE TABLE product_variants (
         id SERIAL PRIMARY KEY,
         product_id INTEGER REFERENCES products(id) NOT NULL,
         name VARCHAR(255) NOT NULL,
@@ -90,17 +111,21 @@ async function main() {
         price_modifier DECIMAL(10,2) DEFAULT 0,
         stock_modifier INTEGER DEFAULT 0
       );
+    `);
 
-      -- Create carts table
-      CREATE TABLE IF NOT EXISTS carts (
+    // Create carts table
+    await pool.query(`
+      CREATE TABLE carts (
         id SERIAL PRIMARY KEY,
         user_id TEXT REFERENCES users(id) NOT NULL,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       );
+    `);
 
-      -- Create cart_items table
-      CREATE TABLE IF NOT EXISTS cart_items (
+    // Create cart_items table
+    await pool.query(`
+      CREATE TABLE cart_items (
         id SERIAL PRIMARY KEY,
         cart_id INTEGER REFERENCES carts(id) NOT NULL,
         product_id INTEGER REFERENCES products(id) NOT NULL,
@@ -108,9 +133,11 @@ async function main() {
         variant_id INTEGER REFERENCES product_variants(id),
         added_at TIMESTAMP DEFAULT NOW()
       );
+    `);
 
-      -- Create orders table
-      CREATE TABLE IF NOT EXISTS orders (
+    // Create orders table
+    await pool.query(`
+      CREATE TABLE orders (
         id SERIAL PRIMARY KEY,
         user_id TEXT REFERENCES users(id) NOT NULL,
         order_number VARCHAR(100) NOT NULL UNIQUE,
@@ -122,9 +149,11 @@ async function main() {
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       );
+    `);
 
-      -- Create order_items table
-      CREATE TABLE IF NOT EXISTS order_items (
+    // Create order_items table
+    await pool.query(`
+      CREATE TABLE order_items (
         id SERIAL PRIMARY KEY,
         order_id INTEGER REFERENCES orders(id) NOT NULL,
         product_id INTEGER REFERENCES products(id) NOT NULL,
@@ -132,9 +161,11 @@ async function main() {
         price DECIMAL(10,2) NOT NULL,
         variant_id INTEGER REFERENCES product_variants(id)
       );
+    `);
 
-      -- Create payments table
-      CREATE TABLE IF NOT EXISTS payments (
+    // Create payments table
+    await pool.query(`
+      CREATE TABLE payments (
         id SERIAL PRIMARY KEY,
         order_id INTEGER REFERENCES orders(id) NOT NULL,
         amount DECIMAL(10,2) NOT NULL,
@@ -146,23 +177,49 @@ async function main() {
       );
     `);
 
-    // Create default admin user if not exists
-      const adminEmail = 'admin@example.com';
-      const adminExists = await db.query('SELECT id FROM users WHERE email = $1', [adminEmail]);
+    // Create default admin user
+    const adminEmail = 'admin@example.com';
+    const adminId = crypto.randomUUID();
+    const hashedPassword = await bcrypt.hash('admin123', 10);
 
-      if (adminExists.rows.length === 0) {
-        const adminId = crypto.randomUUID();
-        const hashedPassword = await require('bcryptjs').hash('admin123', 10);
+    await pool.query(`
+      INSERT INTO users (id, email, password, first_name, last_name, is_admin) 
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `, [adminId, adminEmail, hashedPassword, 'Admin', 'User', true]);
 
-        await db.query(`
-          INSERT INTO users (id, email, password, first_name, last_name, is_admin) 
-          VALUES ($1, $2, $3, $4, $5, $6)
-        `, [adminId, adminEmail, hashedPassword, 'Admin', 'User', true]);
+    // Insert sample categories
+    await pool.query(`
+      INSERT INTO categories (name, slug) VALUES
+      ('Eletrônicos', 'eletronicos'),
+      ('Roupas', 'roupas'),
+      ('Casa e Jardim', 'casa-jardim'),
+      ('Esportes', 'esportes'),
+      ('Livros', 'livros');
+    `);
 
-        console.log('✅ Default admin user created (admin@example.com / admin123)');
-      }
+    // Insert sample brands
+    await pool.query(`
+      INSERT INTO brands (name, slug) VALUES
+      ('Samsung', 'samsung'),
+      ('Apple', 'apple'),
+      ('Nike', 'nike'),
+      ('Adidas', 'adidas'),
+      ('IKEA', 'ikea');
+    `);
 
-      console.log('✅ All tables created successfully!');
+    // Insert sample products
+    await pool.query(`
+      INSERT INTO products (name, slug, description, short_description, price, original_price, stock, category_id, brand_id, image_url, is_active) VALUES
+      ('Smartphone Galaxy S24', 'smartphone-galaxy-s24', 'Smartphone Samsung Galaxy S24 com 256GB', 'Último lançamento da Samsung', 2999.99, 3299.99, 50, 1, 1, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400', true),
+      ('iPhone 15 Pro', 'iphone-15-pro', 'iPhone 15 Pro com 128GB', 'Novo iPhone da Apple', 4999.99, 5499.99, 30, 1, 2, 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400', true),
+      ('Tênis Air Max', 'tenis-air-max', 'Tênis Nike Air Max para corrida', 'Conforto e performance', 299.99, 399.99, 100, 4, 3, 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400', true),
+      ('Camiseta Adidas', 'camiseta-adidas', 'Camiseta esportiva Adidas', 'Tecido respirável', 89.99, 119.99, 200, 2, 4, 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400', true),
+      ('Mesa de Escritório', 'mesa-escritorio', 'Mesa de escritório IKEA', 'Design moderno e funcional', 399.99, 499.99, 25, 3, 5, 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400', true);
+    `);
+
+    console.log('✅ Default admin user created (admin@example.com / admin123)');
+    console.log('✅ Sample data inserted');
+    console.log('✅ All tables created successfully!');
 
   } catch (error) {
     console.error("❌ Migration failed:", error);
