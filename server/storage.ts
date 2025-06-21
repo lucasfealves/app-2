@@ -135,6 +135,13 @@ export interface IStorage {
   // User management
   getUsers(filters?: { limit?: number; offset?: number }): Promise<User[]>;
   updateUserStatus(userId: string, isBlocked: boolean): Promise<User | undefined>;
+
+  // Tenant operations
+  getTenants(filters?: { limit?: number; offset?: number }): Promise<Tenant[]>;
+  getTenant(id: number): Promise<Tenant | undefined>;
+  createTenant(tenant: InsertTenant): Promise<Tenant>;
+  updateTenant(id: number, tenant: Partial<InsertTenant>): Promise<Tenant | undefined>;
+  deleteTenant(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
