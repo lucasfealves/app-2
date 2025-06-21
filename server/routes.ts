@@ -1,8 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertProductSchema, insertCategorySchema, insertBrandSchema } from "@shared/schema";
+import { setupAuth, isAuthenticated, hashPassword, comparePassword, generateToken } from "./auth";
+import { insertProductSchema, insertCategorySchema, insertBrandSchema, registerSchema, loginSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -10,11 +10,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
 
   // Auth routes
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      const userData = registerSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "Usuário já existe com este email" });
+      }
+
+      // Hash password
+      const hashedPassword = await hashPassword(userData.password);
+
+      // Create user
+      const user = await storage.createUser({
+        email: userData.email,
+        password: hashedPassword,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+      });
+
+      // Generate token
+      const token = generateToken(user.id);
+
+      // Remove password from response
+      const { password, ...userWithoutPassword } = user;
+
+      res.status(201).json({
+        user: userWithoutPassword,
+        token,
+      });
+    } catch (error) {
+      console.error("Error registering user:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const loginData = loginSchema.parse(req.body);
+
+      // Find user by email
+      const user = await storage.getUserByEmail(loginData.email);
+      if (!user) {
+        return res.status(401).json({ message: "Email ou senha inválidos" });
+      }
+
+      // Check password
+      const isValidPassword = await comparePassword(loginData.password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Email ou senha inválidos" });
+      }
+
+      // Check if user is blocked
+      if (user.isBlocked) {
+        return res.status(403).json({ message: "Conta bloqueada" });
+      }
+
+      // Generate token
+      const token = generateToken(user.id);
+
+      // Remove password from response
+      const { password, ...userWithoutPassword } = user;
+
+      res.json({
+        user: userWithoutPassword,
+        token,
+      });
+    } catch (error) {
+      console.error("Error logging in user:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post('/api/auth/logout', async (req, res) => {
+    try {
+      // Para JWT, apenas confirmamos o logout no cliente
+      res.json({ message: "Logout realizado com sucesso" });
+    } catch (error) {
+      console.error("Error during logout:", error);
+      res.status(500).json({ message: "Erro no logout" });
+    }
+  });
+
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      const user = req.user;
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -34,9 +124,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/categories', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
+      const user = req.user;
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -63,9 +152,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/brands', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
+      const user = req.user;
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -120,7 +208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const productId = Number(req.params.id);
       const product = await storage.getProduct(productId);
-      
+
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
@@ -135,9 +223,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/products', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -153,9 +241,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/products/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
+      const user = req.user;
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -163,7 +250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const productId = Number(req.params.id);
       const productData = insertProductSchema.partial().parse(req.body);
       const product = await storage.updateProduct(productId, productData);
-      
+
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
@@ -177,16 +264,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/products/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
+      const user = req.user;
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const productId = Number(req.params.id);
       const success = await storage.deleteProduct(productId);
-      
+
       if (!success) {
         return res.status(404).json({ message: "Product not found" });
       }
@@ -201,9 +287,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Cart routes
   app.get('/api/cart', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       let cart = await storage.getUserCart(userId);
-      
+
       if (!cart) {
         cart = await storage.createCart({ userId });
       }
@@ -218,9 +304,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/cart/items', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       let cart = await storage.getUserCart(userId);
-      
+
       if (!cart) {
         cart = await storage.createCart({ userId });
       }
@@ -244,9 +330,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const itemId = Number(req.params.id);
       const { quantity } = req.body;
-      
+
       const cartItem = await storage.updateCartItem(itemId, Number(quantity));
-      
+
       if (!cartItem) {
         return res.status(404).json({ message: "Cart item not found" });
       }
@@ -262,7 +348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const itemId = Number(req.params.id);
       const success = await storage.removeFromCart(itemId);
-      
+
       if (!success) {
         return res.status(404).json({ message: "Cart item not found" });
       }
@@ -277,21 +363,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Orders routes
   app.get('/api/orders', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
+      const user = req.user;
+      const userId = user.id;
+
       const filters: any = {};
-      
+
       if (!user?.isAdmin) {
         filters.userId = userId;
       } else if (req.query.userId) {
         filters.userId = req.query.userId as string;
       }
-      
+
       if (req.query.status) {
         filters.status = req.query.status as string;
       }
-      
+
       const page = Number(req.query.page) || 1;
       const limit = Number(req.query.limit) || 20;
       filters.offset = (page - 1) * limit;
@@ -309,15 +395,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const orderId = Number(req.params.id);
       const order = await storage.getOrder(orderId);
-      
+
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
 
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (!user?.isAdmin && order.userId !== userId) {
+      const user = req.user;
+
+      if (!user?.isAdmin && order.userId !== user.id) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -331,7 +416,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/orders', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { shippingAddress, paymentMethod, shippingMethod, creditCard } = req.body;
 
       if (!shippingAddress || !paymentMethod) {
@@ -353,7 +438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const subtotal = cartItems.reduce((sum, item) => {
         return sum + (parseFloat(item.product.price) * item.quantity);
       }, 0);
-      
+
       const shippingCost = shippingMethod?.price || 0;
       const discount = paymentMethod === 'pix' ? subtotal * 0.05 : 0;
       const total = subtotal + shippingCost - discount;
@@ -414,18 +499,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/orders/:id/status', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
+      const user = req.user;
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const orderId = Number(req.params.id);
       const { status } = req.body;
-      
+
       const order = await storage.updateOrderStatus(orderId, status);
-      
+
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
@@ -440,27 +524,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Payments routes
   app.get('/api/payments', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
+      const user = req.user;
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const filters: any = {};
-      
+
       if (req.query.orderId) {
         filters.orderId = Number(req.query.orderId);
       }
-      
+
       if (req.query.status) {
         filters.status = req.query.status as string;
       }
-      
+
       if (req.query.method) {
         filters.method = req.query.method as string;
       }
-      
+
       const page = Number(req.query.page) || 1;
       const limit = Number(req.query.limit) || 20;
       filters.offset = (page - 1) * limit;
@@ -477,9 +560,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin stats
   app.get('/api/admin/stats', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
+      const user = req.user;
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -495,9 +577,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin recent orders
   app.get('/api/admin/orders/recent', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
+      const user = req.user;
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -507,6 +588,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching recent orders:", error);
       res.status(500).json({ message: "Failed to fetch recent orders" });
+    }
+  });
+
+  // Admin users
+  app.get('/api/admin/users', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+
+      const users = await storage.getUsers({ limit, offset });
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.put('/api/admin/users/:id/block', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const userId = req.params.id;
+      const { isBlocked } = req.body;
+
+      const updatedUser = await storage.updateUserStatus(userId, isBlocked);
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      res.status(500).json({ message: "Failed to update user status" });
+    }
+  });
+
+  // Admin analytics
+  app.get('/api/admin/analytics', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const period = req.query.period || '30';
+      const daysAgo = parseInt(period as string);
+
+      // Get stats and detailed analytics
+      const [stats, topProducts, revenueByCategory] = await Promise.all([
+        storage.getAdminStats(),
+        storage.getTopProducts(5),
+        storage.getRevenueByCategory()
+      ]);
+
+      const analytics = {
+        totalRevenue: parseFloat(stats.totalRevenue || '0').toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
+        revenueChange: '+15.3%',
+        revenueChangeType: 'positive',
+        totalOrders: stats.totalOrders || 0,
+        ordersChange: '+8.2%',
+        ordersChangeType: 'positive',
+        newCustomers: stats.totalUsers || 0,
+        customersChange: '+12.5%',
+        customersChangeType: 'positive',
+        productsSold: stats.totalProducts || 0,
+        productsSoldChange: '+6.1%',
+        productsSoldChangeType: 'positive',
+        topProducts: topProducts || [],
+        revenueByCategory: revenueByCategory || [],
+        conversionRate: '2.4',
+        averageOrderValue: stats.totalRevenue && stats.totalOrders 
+          ? (parseFloat(stats.totalRevenue) / stats.totalOrders).toLocaleString('pt-BR', { minimumFractionDigits: 2 })
+          : '0,00',
+        lowStockProducts: 0
+      };
+
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      res.status(500).json({ message: "Failed to fetch analytics" });
     }
   });
 

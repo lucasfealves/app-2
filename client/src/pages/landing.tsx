@@ -19,13 +19,23 @@ export default function Landing() {
             Descubra uma experiência de compra excepcional com os melhores produtos, 
             preços competitivos e entrega rápida.
           </p>
-          <Button 
-            size="lg" 
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
-            onClick={() => window.location.href = "/api/login"}
-          >
-            Entrar na sua conta
-          </Button>
+          <div className="space-x-4">
+            <Button 
+              size="lg" 
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+              onClick={() => window.location.href = "/login"}
+            >
+              Entrar
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="px-8 py-3 text-lg"
+              onClick={() => window.location.href = "/register"}
+            >
+              Criar conta
+            </Button>
+          </div>
         </div>
       </div>
 

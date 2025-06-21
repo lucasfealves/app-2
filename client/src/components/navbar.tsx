@@ -3,10 +3,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Search, User, Settings, Package, LogOut } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { logout } from "@/lib/authUtils";
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -101,7 +107,7 @@ export default function Navbar() {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem 
-                  onClick={() => window.location.href = "/api/logout"}
+                  onClick={() => logout()}
                   className="text-red-600"
                 >
                   <LogOut className="h-4 w-4 mr-2" />

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAdminOrders } from "@/hooks/useAdminQueries";
 import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,26 +16,21 @@ export default function OrdersTable() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const limit = 10;
 
-  const { data: orders, isLoading, error } = useQuery({
-    queryKey: ['/api/orders', { page, limit, status: statusFilter }],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      params.append('page', page.toString());
-      params.append('limit', limit.toString());
-      if (statusFilter) params.append('status', statusFilter);
-      
-      const response = await fetch(`/api/orders?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch orders');
-      return response.json();
-    }
+  const { data: orders, isLoading, error } = useAdminOrders({
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+    page,
+    limit
   });
 
   const updateOrderStatusMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: number; status: string }) => {
-      await apiRequest('PUT', `/api/orders/${orderId}/status`, { status });
+      return apiRequest(`/api/orders/${orderId}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status })
+      });
     },
     onSuccess: () => {
       toast({
@@ -134,7 +130,7 @@ export default function OrdersTable() {
               <SelectValue placeholder="Filtrar por status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os status</SelectItem>
+              <SelectItem value="all">Todos os status</SelectItem>
               <SelectItem value="pending">Pendente</SelectItem>
               <SelectItem value="processing">Em Andamento</SelectItem>
               <SelectItem value="shipped">Enviado</SelectItem>
@@ -200,7 +196,7 @@ export default function OrdersTable() {
                         </Button>
                         {order.status !== 'delivered' && order.status !== 'cancelled' && (
                           <Select 
-                            value={order.status}
+                            value={order.status || 'pending'}
                             onValueChange={(value) => handleStatusUpdate(order.id, value)}
                           >
                             <SelectTrigger className="w-32 h-8">

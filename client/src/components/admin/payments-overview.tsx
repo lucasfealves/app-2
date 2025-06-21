@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useAdminPayments } from "@/hooks/useAdminQueries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,23 +11,15 @@ import { DollarSign, CreditCard, Smartphone, AlertCircle } from "lucide-react";
 
 export default function PaymentsOverview() {
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState("");
-  const [methodFilter, setMethodFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [methodFilter, setMethodFilter] = useState("all");
   const limit = 10;
 
-  const { data: payments, isLoading, error } = useQuery({
-    queryKey: ['/api/payments', { page, limit, status: statusFilter, method: methodFilter }],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      params.append('page', page.toString());
-      params.append('limit', limit.toString());
-      if (statusFilter) params.append('status', statusFilter);
-      if (methodFilter) params.append('method', methodFilter);
-      
-      const response = await fetch(`/api/payments?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch payments');
-      return response.json();
-    }
+  const { data: payments, isLoading, error } = useAdminPayments({
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+    method: methodFilter !== 'all' ? methodFilter : undefined,
+    page,
+    limit
   });
 
   // Calculate totals (this would be better from a dedicated endpoint)
@@ -174,7 +167,7 @@ export default function PaymentsOverview() {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="completed">Aprovado</SelectItem>
                   <SelectItem value="pending">Pendente</SelectItem>
                   <SelectItem value="failed">Falhou</SelectItem>
@@ -185,7 +178,7 @@ export default function PaymentsOverview() {
                   <SelectValue placeholder="Método" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="pix">PIX</SelectItem>
                   <SelectItem value="credit">Cartão</SelectItem>
                   <SelectItem value="google-pay">Google Pay</SelectItem>
