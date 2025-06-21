@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useAdminAnalytics } from "@/hooks/useAdminQueries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -22,14 +22,7 @@ import {
 export default function AnalyticsDashboard() {
   const [period, setPeriod] = useState("30");
 
-  const { data: analytics, isLoading, error } = useQuery({
-    queryKey: ['/api/admin/analytics', period],
-    queryFn: async () => {
-      const response = await fetch(`/api/admin/analytics?period=${period}`);
-      if (!response.ok) throw new Error('Failed to fetch analytics');
-      return response.json();
-    }
-  });
+  const { data: analytics, isLoading, error } = useAdminAnalytics(period);
 
   const StatCard = ({ title, value, change, changeType, icon: Icon, color }) => (
     <Card className="material-shadow-1 hover:material-shadow-2 transition-shadow">

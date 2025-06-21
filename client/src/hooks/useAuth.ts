@@ -1,5 +1,7 @@
 
+
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export function useAuth() {
   const { data: user, isLoading } = useQuery({
@@ -11,18 +13,7 @@ export function useAuth() {
         throw new Error('No token');
       }
 
-      const response = await fetch('/api/auth/user', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        localStorage.removeItem('token');
-        throw new Error('Unauthorized');
-      }
-
-      return response.json();
+      return apiRequest('/api/auth/user');
     },
   });
 

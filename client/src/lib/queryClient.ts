@@ -104,12 +104,15 @@ export const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 5, // 5 minutes
       retry: (failureCount, error) => {
         // Don't retry on auth errors
-        if (error.message === 'Unauthorized') return false;
+        if (error?.message === 'Unauthorized') return false;
         return failureCount < 3;
       },
     },
     mutations: {
       retry: false,
+      mutationFn: async ({ endpoint, options }: { endpoint: string; options?: RequestInit }) => {
+        return apiRequest(endpoint, options);
+      },
     },
   },
 });
