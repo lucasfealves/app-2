@@ -1,26 +1,48 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAdminUsers } from "@/hooks/useAdminQueries";
+import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 import { Edit, UserX, UserPlus, Shield, AlertCircle } from "lucide-react";
 
 export default function UsersTable() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const limit = 10;
 
-  // Note: This would need a users endpoint in the backend
-  // For now, showing the structure with empty state
-  const { data: users, isLoading, error } = useQuery({
-    queryKey: ['/api/admin/users', { page, limit }],
-    queryFn: async () => {
-      // This endpoint doesn't exist yet, so return empty array
-      return [];
+  const { data: users, isLoading, error } = useAdminUsers({
+    page,
+    limit
+  });
+
+  const updateUserStatusMutation = useMutation({
+    mutationFn: async ({ userId, isBlocked }: { userId: string; isBlocked: boolean }) => {
+      return apiRequest(`/api/admin/users/${userId}/block`, {
+        method: 'PUT',
+        body: JSON.stringify({ isBlocked })
+      });
     },
-    enabled: false // Disable for now since endpoint doesn't exist
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Status do usuário atualizado com sucesso",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar status do usuário",
+        variant: "destructive",
+      });
+    },
   });
 
   const getUserInitials = (firstName?: string, lastName?: string) => {
@@ -148,18 +170,41 @@ export default function UsersTable() {
                     </TableCell>
                     <TableCell>
                       <span className="text-gray-900">
-                        {user.lastAccess || 'N/A'}
+                        {user.updatedAt 
+                          ? new Date(user.updatedAt).toLocaleDateString('pt-BR')
+                          : 'N/A'
+                        }
                       </span>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          title="Editar usuário"
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-blue-600"
+                          title="Promover/Rebaixar admin"
+                        >
                           <Shield className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className={`h-8 w-8 ${user.isBlocked ? 'text-green-600' : 'text-red-600'}`}
+                          title={user.isBlocked ? "Desbloquear usuário" : "Bloquear usuário"}
+                          onClick={() => updateUserStatusMutation.mutate({ 
+                            userId: user.id, 
+                            isBlocked: !user.isBlocked 
+                          })}
+                          disabled={updateUserStatusMutation.isPending}
+                        >
                           <UserX className="h-4 w-4" />
                         </Button>
                       </div>
