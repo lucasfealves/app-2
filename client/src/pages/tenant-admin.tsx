@@ -5,8 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { Eye, Edit2, Palette, Globe, Calendar } from "lucide-react";
 
 interface Tenant {
   id: string;
@@ -24,6 +27,8 @@ interface Tenant {
 
 export default function TenantAdmin() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [newTenant, setNewTenant] = useState({
     name: "",
     slug: "",
@@ -101,6 +106,11 @@ export default function TenantAdmin() {
       name,
       slug: generateSlug(name),
     }));
+  };
+
+  const handleViewDetails = (tenant: Tenant) => {
+    setSelectedTenant(tenant);
+    setIsDetailsDialogOpen(true);
   };
 
   if (isLoading) {
@@ -216,7 +226,7 @@ export default function TenantAdmin() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {tenants.map((tenant: Tenant) => (
+        {(tenants as Tenant[]).map((tenant: Tenant) => (
           <Card key={tenant.id} className="relative">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -229,19 +239,14 @@ export default function TenantAdmin() {
               <CardDescription>{tenant.slug}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2 text-sm">
+              <div className="space-y-3 text-sm">
                 {tenant.description && (
-                  <p className="text-muted-foreground">{tenant.description}</p>
-                )}
-                
-                {tenant.domain && (
-                  <div>
-                    <strong>Domínio:</strong> {tenant.domain}
-                  </div>
+                  <p className="text-muted-foreground line-clamp-2">{tenant.description}</p>
                 )}
                 
                 <div className="flex items-center gap-2">
-                  <strong>Cores:</strong>
+                  <Palette className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-xs">Paleta de cores</span>
                   <div 
                     className="w-3 h-3 rounded border"
                     style={{ backgroundColor: tenant.primaryColor }}
@@ -251,16 +256,28 @@ export default function TenantAdmin() {
                     style={{ backgroundColor: tenant.secondaryColor }}
                   />
                 </div>
+
+                {tenant.domain && (
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-xs">{tenant.domain}</span>
+                  </div>
+                )}
                 
-                <div>
-                  <strong>Status:</strong> 
-                  <span className={`ml-1 ${tenant.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                <div className="flex items-center justify-between pt-2">
+                  <Badge variant={tenant.isActive ? "default" : "secondary"}>
                     {tenant.isActive ? 'Ativo' : 'Inativo'}
-                  </span>
-                </div>
-                
-                <div className="text-xs text-muted-foreground">
-                  Criado em: {new Date(tenant.createdAt).toLocaleDateString('pt-BR')}
+                  </Badge>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleViewDetails(tenant)}
+                    className="flex items-center gap-1"
+                  >
+                    <Eye className="w-3 h-3" />
+                    Detalhes
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -274,6 +291,156 @@ export default function TenantAdmin() {
           <p className="text-muted-foreground mb-4">Crie seu primeiro tenant para começar</p>
         </div>
       )}
+
+      {/* Modal de Detalhes do Tenant */}
+      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="w-5 h-5" />
+              Detalhes do Tenant
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedTenant && (
+            <div className="space-y-6">
+              {/* Informações Gerais */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-12 h-12 rounded-lg border-2 flex items-center justify-center text-white font-bold"
+                    style={{ backgroundColor: selectedTenant.primaryColor }}
+                  >
+                    {selectedTenant.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold">{selectedTenant.name}</h3>
+                    <p className="text-muted-foreground">/{selectedTenant.slug}</p>
+                  </div>
+                </div>
+
+                {selectedTenant.description && (
+                  <div>
+                    <Label className="text-sm font-medium">Descrição</Label>
+                    <p className="text-sm text-muted-foreground mt-1">{selectedTenant.description}</p>
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Status e Configurações */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <Badge variant={selectedTenant.isActive ? "default" : "secondary"}>
+                        Status
+                      </Badge>
+                    </Label>
+                    <p className="text-sm mt-1">
+                      {selectedTenant.isActive ? 'Ativo e funcionando' : 'Inativo'}
+                    </p>
+                  </div>
+
+                  {selectedTenant.domain && (
+                    <div>
+                      <Label className="text-sm font-medium flex items-center gap-2">
+                        <Globe className="w-4 h-4" />
+                        Domínio Personalizado
+                      </Label>
+                      <p className="text-sm mt-1 font-mono bg-muted px-2 py-1 rounded">
+                        {selectedTenant.domain}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <Palette className="w-4 h-4" />
+                      Paleta de Cores
+                    </Label>
+                    <div className="flex gap-3 mt-2">
+                      <div className="space-y-1">
+                        <div 
+                          className="w-12 h-12 rounded border"
+                          style={{ backgroundColor: selectedTenant.primaryColor }}
+                        />
+                        <p className="text-xs text-center font-mono">{selectedTenant.primaryColor}</p>
+                        <p className="text-xs text-center text-muted-foreground">Primária</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div 
+                          className="w-12 h-12 rounded border"
+                          style={{ backgroundColor: selectedTenant.secondaryColor }}
+                        />
+                        <p className="text-xs text-center font-mono">{selectedTenant.secondaryColor}</p>
+                        <p className="text-xs text-center text-muted-foreground">Secundária</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Metadados */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Informações do Sistema
+                </Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">ID:</span>
+                      <span className="font-mono text-xs">{selectedTenant.id}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Criado em:</span>
+                      <span>{new Date(selectedTenant.createdAt).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Última atualização:</span>
+                      <span>{new Date(selectedTenant.updatedAt).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ações */}
+              <div className="flex gap-2 pt-4">
+                <Button variant="outline" className="flex-1">
+                  <Edit2 className="w-4 h-4 mr-2" />
+                  Editar Tenant
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsDetailsDialogOpen(false)}
+                >
+                  Fechar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
