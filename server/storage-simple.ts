@@ -39,7 +39,23 @@ import { eq, and, desc, like, ilike, gte, lte, count, sql } from "drizzle-orm";
 export class DatabaseStorage {
   // Tenant operations
   async getTenants(filters?: { limit?: number; offset?: number }): Promise<Tenant[]> {
-    let query = db.select().from(tenants);
+    let query = db.select({
+      id: tenants.id,
+      name: tenants.name,
+      slug: tenants.slug,
+      domain: tenants.domain,
+      description: tenants.description,
+      logoUrl: tenants.logoUrl,
+      contactEmail: tenants.contactEmail,
+      contactPhone: tenants.contactPhone,
+      address: tenants.address,
+      settings: tenants.settings,
+      isActive: tenants.isActive,
+      subscriptionPlan: tenants.subscriptionPlan,
+      subscriptionStatus: tenants.subscriptionStatus,
+      createdAt: tenants.createdAt,
+      updatedAt: tenants.updatedAt,
+    }).from(tenants);
 
     query = query.orderBy(desc(tenants.createdAt));
 
@@ -55,12 +71,44 @@ export class DatabaseStorage {
   }
 
   async getTenant(id: number): Promise<Tenant | undefined> {
-    const [tenant] = await db.select().from(tenants).where(eq(tenants.id, id));
+    const [tenant] = await db.select({
+      id: tenants.id,
+      name: tenants.name,
+      slug: tenants.slug,
+      domain: tenants.domain,
+      description: tenants.description,
+      logoUrl: tenants.logoUrl,
+      contactEmail: tenants.contactEmail,
+      contactPhone: tenants.contactPhone,
+      address: tenants.address,
+      settings: tenants.settings,
+      isActive: tenants.isActive,
+      subscriptionPlan: tenants.subscriptionPlan,
+      subscriptionStatus: tenants.subscriptionStatus,
+      createdAt: tenants.createdAt,
+      updatedAt: tenants.updatedAt,
+    }).from(tenants).where(eq(tenants.id, id));
     return tenant;
   }
 
   async getTenantBySlug(slug: string): Promise<Tenant | undefined> {
-    const [tenant] = await db.select().from(tenants).where(eq(tenants.slug, slug));
+    const [tenant] = await db.select({
+      id: tenants.id,
+      name: tenants.name,
+      slug: tenants.slug,
+      domain: tenants.domain,
+      description: tenants.description,
+      logoUrl: tenants.logoUrl,
+      contactEmail: tenants.contactEmail,
+      contactPhone: tenants.contactPhone,
+      address: tenants.address,
+      settings: tenants.settings,
+      isActive: tenants.isActive,
+      subscriptionPlan: tenants.subscriptionPlan,
+      subscriptionStatus: tenants.subscriptionStatus,
+      createdAt: tenants.createdAt,
+      updatedAt: tenants.updatedAt,
+    }).from(tenants).where(eq(tenants.slug, slug));
     return tenant;
   }
 
