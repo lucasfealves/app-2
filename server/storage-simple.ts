@@ -38,11 +38,23 @@ import { eq, and, desc, like, ilike, gte, lte, count, sql } from "drizzle-orm";
 
 export class DatabaseStorage {
   // Tenant operations
-  async getTenants(): Promise<Tenant[]> {
-    return await db.select().from(tenants).where(eq(tenants.isActive, true));
+  async getTenants(filters?: { limit?: number; offset?: number }): Promise<Tenant[]> {
+    let query = db.select().from(tenants);
+
+    query = query.orderBy(desc(tenants.createdAt));
+
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
+
+    if (filters?.offset) {
+      query = query.offset(filters.offset);
+    }
+
+    return await query;
   }
 
-  async getTenant(id: string): Promise<Tenant | undefined> {
+  async getTenant(id: number): Promise<Tenant | undefined> {
     const [tenant] = await db.select().from(tenants).where(eq(tenants.id, id));
     return tenant;
   }
@@ -57,13 +69,18 @@ export class DatabaseStorage {
     return newTenant;
   }
 
-  async updateTenant(id: string, tenant: Partial<InsertTenant>): Promise<Tenant | undefined> {
+  async updateTenant(id: number, tenant: Partial<InsertTenant>): Promise<Tenant | undefined> {
     const [updatedTenant] = await db
       .update(tenants)
       .set({ ...tenant, updatedAt: new Date() })
       .where(eq(tenants.id, id))
       .returning();
     return updatedTenant;
+  }
+
+  async deleteTenant(id: number): Promise<boolean> {
+    const result = await db.delete(tenants).where(eq(tenants.id, id));
+    return result.rowCount > 0;
   }
 
   // User operations
