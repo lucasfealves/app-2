@@ -611,6 +611,50 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedUser;
   }
+
+  // Tenant operations
+  async getTenants(filters?: { limit?: number; offset?: number }): Promise<Tenant[]> {
+    let query = db.select().from(tenants);
+
+    query = query.orderBy(desc(tenants.createdAt));
+
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
+
+    if (filters?.offset) {
+      query = query.offset(filters.offset);
+    }
+
+    return await query;
+  }
+
+  async getTenant(id: number): Promise<Tenant | undefined> {
+    const [tenant] = await db
+      .select()
+      .from(tenants)
+      .where(eq(tenants.id, id));
+    return tenant;
+  }
+
+  async createTenant(tenant: InsertTenant): Promise<Tenant> {
+    const [newTenant] = await db.insert(tenants).values(tenant).returning();
+    return newTenant;
+  }
+
+  async updateTenant(id: number, tenant: Partial<InsertTenant>): Promise<Tenant | undefined> {
+    const [updatedTenant] = await db
+      .update(tenants)
+      .set({ ...tenant, updatedAt: new Date() })
+      .where(eq(tenants.id, id))
+      .returning();
+    return updatedTenant;
+  }
+
+  async deleteTenant(id: number): Promise<boolean> {
+    const result = await db.delete(tenants).where(eq(tenants.id, id));
+    return result.rowCount > 0;
+  }
 }
 
 // Export the simple storage implementation
