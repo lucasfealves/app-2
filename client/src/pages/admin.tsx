@@ -7,16 +7,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  AlertCircle, 
-  Shield, 
-  BarChart3, 
-  Package, 
-  Users, 
-  ShoppingCart, 
+import {
+  AlertCircle,
+  Shield,
+  BarChart3,
+  Package,
+  Users,
+  ShoppingCart,
   CreditCard,
   Plus,
-  Download
+  Download,
 } from "lucide-react";
 
 // Import admin components
@@ -93,8 +93,12 @@ export default function Admin() {
               <Shield className="h-8 w-8 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Painel Administrativo</h1>
-              <p className="text-gray-600">Gerencie sua loja e acompanhe métricas</p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Painel Administrativo
+              </h1>
+              <p className="text-gray-600">
+                Gerencie sua loja e acompanhe métricas
+              </p>
             </div>
           </div>
           <div className="flex space-x-3">
@@ -109,33 +113,58 @@ export default function Admin() {
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
           <TabsList className="grid w-full grid-cols-7 bg-white rounded-xl p-1 material-shadow-1">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger
+              value="overview"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
               <BarChart3 className="h-4 w-4 mr-2" />
               Dashboard
             </TabsTrigger>
-            <TabsTrigger value="products" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger
+              value="products"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
               <Package className="h-4 w-4 mr-2" />
               Produtos
             </TabsTrigger>
-            <TabsTrigger value="categories" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger
+              value="categories"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
               <Package className="h-4 w-4 mr-2" />
               Categorias
             </TabsTrigger>
-            <TabsTrigger value="orders" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger
+              value="orders"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
               <ShoppingCart className="h-4 w-4 mr-2" />
               Pedidos
             </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger
+              value="users"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
               <Users className="h-4 w-4 mr-2" />
               Usuários
             </TabsTrigger>
-            <TabsTrigger value="payments" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger
+              value="payments"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
               <CreditCard className="h-4 w-4 mr-2" />
               Pagamentos
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger
+              value="analytics"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
               <BarChart3 className="h-4 w-4 mr-2" />
               Análises
             </TabsTrigger>
