@@ -48,3 +48,17 @@ export function useAdminAnalytics(period: string = "30") {
     retry: false,
   });
 }
+
+export function useAdminUsers(filters?: {
+  page?: number;
+  limit?: number;
+}) {
+  const queryParams = new URLSearchParams();
+  if (filters?.page) queryParams.append('page', filters.page.toString());
+  if (filters?.limit) queryParams.append('limit', filters.limit.toString());
+
+  return useQuery({
+    queryKey: [`/api/admin/users?${queryParams.toString()}`],
+    retry: false,
+  });
+}

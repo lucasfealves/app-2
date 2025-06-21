@@ -120,6 +120,10 @@ export interface IStorage {
     // Auth methods
     createUser(userData: { email: string; password: string; firstName: string; lastName: string }): Promise<User>;
     getUserByEmail(email: string): Promise<User | undefined>;
+
+  // User management
+  getUsers(filters?: { limit?: number; offset?: number }): Promise<User[]>;
+  updateUserStatus(userId: string, isBlocked: boolean): Promise<User | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -465,13 +469,9 @@ export class DatabaseStorage implements IStorage {
     totalUsers: number;
     todayOrders: number;
     todayRevenue: string;
-    totalOrders: number;
-    totalRevenue: string;
   }> {
     const totalProducts = await db.$count(products, eq(products.isActive, true));
     const totalUsers = await db.$count(users, eq(users.isBlocked, false));
-    const totalOrders = await db.$count(orders);
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
@@ -497,18 +497,7 @@ export class DatabaseStorage implements IStorage {
         )
       );
 
-    const totalRevenueResult = await db
-      .select({
-        total: orders.totalAmount
-      })
-      .from(orders)
-      .where(eq(orders.status, 'completed'));
-
     const todayRevenue = todayRevenueResult
-      .reduce((sum, order) => sum + parseFloat(order.total), 0)
-      .toFixed(2);
-
-    const totalRevenue = totalRevenueResult
       .reduce((sum, order) => sum + parseFloat(order.total), 0)
       .toFixed(2);
 
@@ -517,8 +506,6 @@ export class DatabaseStorage implements IStorage {
       totalUsers,
       todayOrders,
       todayRevenue,
-      totalOrders,
-      totalRevenue,
     };
   }
 
@@ -540,6 +527,30 @@ export class DatabaseStorage implements IStorage {
         const [user] = await db.select().from(users).where(eq(users.email, email));
         return user;
     }
+
+  // User management
+  async getUsers(filters?: { limit?: number; offset?: number }): Promise<User[]> {
+    let query = db.select().from(users);
+
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
+
+    if (filters?.offset) {
+      query = query.offset(filters.offset);
+    }
+
+    return await query;
+  }
+
+  async updateUserStatus(userId: string, isBlocked: boolean): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ isBlocked, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser;
+  }
 }
 
 export const storage = new DatabaseStorage();

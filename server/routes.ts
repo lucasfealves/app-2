@@ -591,6 +591,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin users
+  app.get('/api/admin/users', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+
+      const users = await storage.getUsers({ limit, offset });
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.put('/api/admin/users/:id/block', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const userId = req.params.id;
+      const { isBlocked } = req.body;
+
+      const updatedUser = await storage.updateUserStatus(userId, isBlocked);
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      res.status(500).json({ message: "Failed to update user status" });
+    }
+  });
+
   // Admin analytics
   app.get('/api/admin/analytics', isAuthenticated, async (req: any, res) => {
     try {

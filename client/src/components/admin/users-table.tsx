@@ -173,7 +173,7 @@ export default function UsersTable() {
                       <UserPlus className="h-12 w-12 text-gray-400" />
                       <p>Nenhum usuário encontrado</p>
                       <p className="text-sm">
-                        A funcionalidade de gerenciamento de usuários será implementada em breve
+                        Comece criando uma conta de usuário
                       </p>
                     </div>
                   </TableCell>
