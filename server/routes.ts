@@ -90,6 +90,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/auth/logout', async (req, res) => {
+    try {
+      // Para JWT, apenas confirmamos o logout no cliente
+      res.json({ message: "Logout realizado com sucesso" });
+    } catch (error) {
+      console.error("Error during logout:", error);
+      res.status(500).json({ message: "Erro no logout" });
+    }
+  });
+
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user;

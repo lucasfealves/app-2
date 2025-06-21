@@ -32,9 +32,3 @@ export function useAuth() {
     isAuthenticated: !!user,
   };
 }
-
-export function logout() {
-  localStorage.removeItem('token');
-  fetch('/api/auth/logout', { method: 'POST' });
-  window.location.href = '/login';
-}
