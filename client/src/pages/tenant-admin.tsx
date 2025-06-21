@@ -269,15 +269,27 @@ export default function TenantAdmin() {
                     {tenant.isActive ? 'Ativo' : 'Inativo'}
                   </Badge>
                   
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleViewDetails(tenant)}
-                    className="flex items-center gap-1"
-                  >
-                    <Eye className="w-3 h-3" />
-                    Detalhes
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.open(`/store/${tenant.slug}`, '_blank')}
+                      className="flex items-center gap-1"
+                      disabled={!tenant.isActive}
+                    >
+                      <Store className="w-3 h-3" />
+                      Visitar
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleViewDetails(tenant)}
+                      className="flex items-center gap-1"
+                    >
+                      <Eye className="w-3 h-3" />
+                      Detalhes
+                    </Button>
+                  </div>
                 </div>
               </div>
             </CardContent>
