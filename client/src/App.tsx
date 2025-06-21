@@ -15,6 +15,7 @@ import Cart from "@/pages/cart";
 import Checkout from "@/pages/checkout";
 import Orders from "@/pages/orders";
 import Admin from "@/pages/admin";
+import TenantAdmin from "@/pages/tenant-admin";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -39,6 +40,7 @@ function Router() {
           <Route path="/checkout" component={Checkout} />
           <Route path="/orders" component={Orders} />
           <Route path="/admin" component={Admin} />
+          <Route path="/tenant-admin" component={TenantAdmin} />
         </>
       )}
       <Route component={NotFound} />

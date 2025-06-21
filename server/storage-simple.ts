@@ -34,110 +34,9 @@ import {
   type InsertPayment,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, like, ilike, gte, lte, inArray, isNull } from "drizzle-orm";
+import { eq, and, desc, like, ilike, gte, lte, count, sql } from "drizzle-orm";
 
-// Interface for storage operations
-export interface IStorage {
-  // Tenant operations
-  getTenants(): Promise<Tenant[]>;
-  getTenant(id: string): Promise<Tenant | undefined>;
-  getTenantBySlug(slug: string): Promise<Tenant | undefined>;
-  createTenant(tenant: InsertTenant): Promise<Tenant>;
-  updateTenant(id: string, tenant: Partial<InsertTenant>): Promise<Tenant | undefined>;
-
-  // User operations (IMPORTANT) these user operations are mandatory for Replit Auth.
-  getUser(id: string): Promise<User | undefined>;
-  upsertUser(user: UpsertUser): Promise<User>;
-
-  // Category operations
-  getCategories(tenantId?: string): Promise<Category[]>;
-  createCategory(category: InsertCategory): Promise<Category>;
-
-  // Brand operations
-  getBrands(tenantId?: string): Promise<Brand[]>;
-  createBrand(brand: InsertBrand): Promise<Brand>;
-
-  // Product operations
-  getProducts(filters?: {
-    tenantId?: string;
-    categoryId?: number;
-    brandId?: number;
-    search?: string;
-    minPrice?: number;
-    maxPrice?: number;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-    limit?: number;
-    offset?: number;
-  }): Promise<Product[]>;
-  getProduct(id: number, tenantId?: string): Promise<Product | undefined>;
-  getProductBySlug(slug: string, tenantId?: string): Promise<Product | undefined>;
-  createProduct(product: InsertProduct): Promise<Product>;
-  updateProduct(id: number, product: Partial<InsertProduct>): Promise<Product | undefined>;
-  deleteProduct(id: number): Promise<boolean>;
-
-  // Product variant operations
-  getProductVariants(productId: number): Promise<ProductVariant[]>;
-  createProductVariant(variant: InsertProductVariant): Promise<ProductVariant>;
-
-  // Cart operations
-  getUserCart(userId: string, tenantId?: string): Promise<Cart | undefined>;
-  createCart(cart: InsertCart): Promise<Cart>;
-  getCartItems(cartId: number): Promise<(CartItem & { product: Product })[]>;
-  addToCart(cartItem: InsertCartItem): Promise<CartItem>;
-  updateCartItem(id: number, quantity: number): Promise<CartItem | undefined>;
-  removeFromCart(id: number): Promise<boolean>;
-  clearCart(cartId: number): Promise<boolean>;
-
-  // Order operations
-  getOrders(filters?: {
-    userId?: string;
-    status?: string;
-    limit?: number;
-    offset?: number;
-  }): Promise<Order[]>;
-  getOrder(id: number): Promise<Order | undefined>;
-  getOrderByNumber(orderNumber: string): Promise<Order | undefined>;
-  createOrder(order: InsertOrder): Promise<Order>;
-  updateOrderStatus(id: number, status: string): Promise<Order | undefined>;
-
-  // Order item operations
-  getOrderItems(orderId: number): Promise<(OrderItem & { product: Product })[]>;
-  createOrderItem(orderItem: InsertOrderItem): Promise<OrderItem>;
-
-  // Payment operations
-  getPayments(filters?: {
-    orderId?: number;
-    status?: string;
-    method?: string;
-    limit?: number;
-    offset?: number;
-  }): Promise<Payment[]>;
-  createPayment(payment: InsertPayment): Promise<Payment>;
-  updatePaymentStatus(id: number, status: string): Promise<Payment | undefined>;
-
-  // Admin statistics
-  getAdminStats(): Promise<{
-    totalProducts: number;
-    totalUsers: number;
-    todayOrders: number;
-    todayRevenue: string;
-  }>;
-
-    // Analytics
-    getTopProducts(limit?: number): Promise<any[]>;
-    getRevenueByCategory(): Promise<any[]>;
-
-    // Auth methods
-    createUser(userData: { email: string; password: string; firstName: string; lastName: string }): Promise<User>;
-    getUserByEmail(email: string): Promise<User | undefined>;
-
-  // User management
-  getUsers(filters?: { limit?: number; offset?: number }): Promise<User[]>;
-  updateUserStatus(userId: string, isBlocked: boolean): Promise<User | undefined>;
-}
-
-export class DatabaseStorage implements IStorage {
+export class DatabaseStorage {
   // Tenant operations
   async getTenants(): Promise<Tenant[]> {
     return await db.select().from(tenants).where(eq(tenants.isActive, true));
@@ -167,7 +66,7 @@ export class DatabaseStorage implements IStorage {
     return updatedTenant;
   }
 
-  // User operations (IMPORTANT) these user operations are mandatory for Replit Auth.
+  // User operations
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
@@ -185,6 +84,39 @@ export class DatabaseStorage implements IStorage {
         },
       })
       .returning();
+    return user;
+  }
+
+  async getUsers(filters?: { limit?: number; offset?: number }): Promise<User[]> {
+    let query = db.select().from(users);
+    
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
+    
+    if (filters?.offset) {
+      query = query.offset(filters.offset);
+    }
+    
+    return await query;
+  }
+
+  async updateUserStatus(userId: string, isBlocked: boolean): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ isBlocked, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async createUser(userData: { email: string; password: string; firstName: string; lastName: string }): Promise<User> {
+    const [user] = await db.insert(users).values(userData).returning();
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user;
   }
 
@@ -232,29 +164,29 @@ export class DatabaseStorage implements IStorage {
     if (filters?.tenantId) {
       conditions.push(eq(products.tenantId, filters.tenantId));
     }
-
     if (filters?.categoryId) {
       conditions.push(eq(products.categoryId, filters.categoryId));
     }
-
     if (filters?.brandId) {
       conditions.push(eq(products.brandId, filters.brandId));
     }
-
     if (filters?.search) {
       conditions.push(ilike(products.name, `%${filters.search}%`));
     }
-
     if (filters?.minPrice) {
       conditions.push(gte(products.price, filters.minPrice.toString()));
     }
-
     if (filters?.maxPrice) {
       conditions.push(lte(products.price, filters.maxPrice.toString()));
     }
 
-    let query = db.select().from(products).where(and(...conditions));
+    let query = db.select().from(products);
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
 
+    // Add sorting
     if (filters?.sortBy === 'price') {
       query = filters.sortOrder === 'desc' 
         ? query.orderBy(desc(products.price))
@@ -270,7 +202,6 @@ export class DatabaseStorage implements IStorage {
     if (filters?.limit) {
       query = query.limit(filters.limit);
     }
-
     if (filters?.offset) {
       query = query.offset(filters.offset);
     }
@@ -278,13 +209,23 @@ export class DatabaseStorage implements IStorage {
     return await query;
   }
 
-  async getProduct(id: number): Promise<Product | undefined> {
-    const [product] = await db.select().from(products).where(eq(products.id, id));
+  async getProduct(id: number, tenantId?: string): Promise<Product | undefined> {
+    const conditions = [eq(products.id, id)];
+    if (tenantId) {
+      conditions.push(eq(products.tenantId, tenantId));
+    }
+    
+    const [product] = await db.select().from(products).where(and(...conditions));
     return product;
   }
 
-  async getProductBySlug(slug: string): Promise<Product | undefined> {
-    const [product] = await db.select().from(products).where(eq(products.slug, slug));
+  async getProductBySlug(slug: string, tenantId?: string): Promise<Product | undefined> {
+    const conditions = [eq(products.slug, slug)];
+    if (tenantId) {
+      conditions.push(eq(products.tenantId, tenantId));
+    }
+    
+    const [product] = await db.select().from(products).where(and(...conditions));
     return product;
   }
 
@@ -303,8 +244,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteProduct(id: number): Promise<boolean> {
-    const result = await db.delete(products).where(eq(products.id, id));
-    return result.rowCount > 0;
+    const result = await db.update(products).set({ isActive: false }).where(eq(products.id, id));
+    return (result.rowCount || 0) > 0;
   }
 
   // Product variant operations
@@ -318,8 +259,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Cart operations
-  async getUserCart(userId: string): Promise<Cart | undefined> {
-    const [cart] = await db.select().from(carts).where(eq(carts.userId, userId));
+  async getUserCart(userId: string, tenantId?: string): Promise<Cart | undefined> {
+    const conditions = [eq(carts.userId, userId)];
+    if (tenantId) {
+      conditions.push(eq(carts.tenantId, tenantId));
+    }
+    
+    const [cart] = await db.select().from(carts).where(and(...conditions));
     return cart;
   }
 
@@ -337,7 +283,25 @@ export class DatabaseStorage implements IStorage {
         quantity: cartItems.quantity,
         variantId: cartItems.variantId,
         addedAt: cartItems.addedAt,
-        product: products,
+        product: {
+          id: products.id,
+          name: products.name,
+          price: products.price,
+          originalPrice: products.originalPrice,
+          imageUrl: products.imageUrl,
+          slug: products.slug,
+          description: products.description,
+          shortDescription: products.shortDescription,
+          stock: products.stock,
+          categoryId: products.categoryId,
+          brandId: products.brandId,
+          tenantId: products.tenantId,
+          images: products.images,
+          specifications: products.specifications,
+          isActive: products.isActive,
+          createdAt: products.createdAt,
+          updatedAt: products.updatedAt,
+        },
       })
       .from(cartItems)
       .innerJoin(products, eq(cartItems.productId, products.id))
@@ -345,79 +309,64 @@ export class DatabaseStorage implements IStorage {
   }
 
   async addToCart(cartItem: InsertCartItem): Promise<CartItem> {
-    // Check if item already exists in cart
-    const [existingItem] = await db
-      .select()
-      .from(cartItems)
-      .where(
-        and(
-          eq(cartItems.cartId, cartItem.cartId),
-          eq(cartItems.productId, cartItem.productId),
-          cartItem.variantId ? eq(cartItems.variantId, cartItem.variantId) : eq(cartItems.variantId, null)
-        )
-      );
-
-    if (existingItem) {
-      // Update quantity
-      const [updatedItem] = await db
-        .update(cartItems)
-        .set({ quantity: existingItem.quantity + cartItem.quantity })
-        .where(eq(cartItems.id, existingItem.id))
-        .returning();
-      return updatedItem;
-    } else {
-      // Insert new item
-      const [newItem] = await db.insert(cartItems).values(cartItem).returning();
-      return newItem;
-    }
+    const [item] = await db.insert(cartItems).values(cartItem).returning();
+    return item;
   }
 
   async updateCartItem(id: number, quantity: number): Promise<CartItem | undefined> {
-    const [updatedItem] = await db
+    const [item] = await db
       .update(cartItems)
       .set({ quantity })
       .where(eq(cartItems.id, id))
       .returning();
-    return updatedItem;
+    return item;
   }
 
   async removeFromCart(id: number): Promise<boolean> {
     const result = await db.delete(cartItems).where(eq(cartItems.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async clearCart(cartId: number): Promise<boolean> {
     const result = await db.delete(cartItems).where(eq(cartItems.cartId, cartId));
-    return result.rowCount >= 0;
+    return (result.rowCount || 0) > 0;
   }
 
   // Order operations
   async getOrders(filters?: {
     userId?: string;
     status?: string;
+    tenantId?: string;
     limit?: number;
     offset?: number;
   }): Promise<Order[]> {
-    let query = db.select().from(orders);
-
+    const conditions = [];
+    
     if (filters?.userId) {
-      query = query.where(eq(orders.userId, filters.userId));
+      conditions.push(eq(orders.userId, filters.userId));
     }
-
     if (filters?.status) {
-      query = query.where(eq(orders.status, filters.status));
+      conditions.push(eq(orders.status, filters.status));
+    }
+    if (filters?.tenantId) {
+      conditions.push(eq(orders.tenantId, filters.tenantId));
     }
 
+    let query = db.select().from(orders);
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
     query = query.orderBy(desc(orders.createdAt));
-
+    
     if (filters?.limit) {
       query = query.limit(filters.limit);
     }
-
     if (filters?.offset) {
       query = query.offset(filters.offset);
     }
-
+    
     return await query;
   }
 
@@ -437,12 +386,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateOrderStatus(id: number, status: string): Promise<Order | undefined> {
-    const [updatedOrder] = await db
+    const [order] = await db
       .update(orders)
       .set({ status, updatedAt: new Date() })
       .where(eq(orders.id, id))
       .returning();
-    return updatedOrder;
+    return order;
   }
 
   // Order item operations
@@ -455,7 +404,25 @@ export class DatabaseStorage implements IStorage {
         quantity: orderItems.quantity,
         price: orderItems.price,
         variantId: orderItems.variantId,
-        product: products,
+        product: {
+          id: products.id,
+          name: products.name,
+          price: products.price,
+          originalPrice: products.originalPrice,
+          imageUrl: products.imageUrl,
+          slug: products.slug,
+          description: products.description,
+          shortDescription: products.shortDescription,
+          stock: products.stock,
+          categoryId: products.categoryId,
+          brandId: products.brandId,
+          tenantId: products.tenantId,
+          images: products.images,
+          specifications: products.specifications,
+          isActive: products.isActive,
+          createdAt: products.createdAt,
+          updatedAt: products.updatedAt,
+        },
       })
       .from(orderItems)
       .innerJoin(products, eq(orderItems.productId, products.id))
@@ -463,8 +430,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createOrderItem(orderItem: InsertOrderItem): Promise<OrderItem> {
-    const [newOrderItem] = await db.insert(orderItems).values(orderItem).returning();
-    return newOrderItem;
+    const [item] = await db.insert(orderItems).values(orderItem).returning();
+    return item;
   }
 
   // Payment operations
@@ -475,30 +442,33 @@ export class DatabaseStorage implements IStorage {
     limit?: number;
     offset?: number;
   }): Promise<Payment[]> {
-    let query = db.select().from(payments);
-
+    const conditions = [];
+    
     if (filters?.orderId) {
-      query = query.where(eq(payments.orderId, filters.orderId));
+      conditions.push(eq(payments.orderId, filters.orderId));
     }
-
     if (filters?.status) {
-      query = query.where(eq(payments.status, filters.status));
+      conditions.push(eq(payments.status, filters.status));
     }
-
     if (filters?.method) {
-      query = query.where(eq(payments.method, filters.method));
+      conditions.push(eq(payments.method, filters.method));
     }
 
+    let query = db.select().from(payments);
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
     query = query.orderBy(desc(payments.createdAt));
-
+    
     if (filters?.limit) {
       query = query.limit(filters.limit);
     }
-
     if (filters?.offset) {
       query = query.offset(filters.offset);
     }
-
+    
     return await query;
   }
 
@@ -508,12 +478,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePaymentStatus(id: number, status: string): Promise<Payment | undefined> {
-    const [updatedPayment] = await db
+    const [payment] = await db
       .update(payments)
       .set({ status, updatedAt: new Date() })
       .where(eq(payments.id, id))
       .returning();
-    return updatedPayment;
+    return payment;
   }
 
   // Admin statistics
@@ -523,88 +493,53 @@ export class DatabaseStorage implements IStorage {
     todayOrders: number;
     todayRevenue: string;
   }> {
-    const totalProducts = await db.$count(products, eq(products.isActive, true));
-    const totalUsers = await db.$count(users, eq(users.isBlocked, false));
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const todayOrders = await db.$count(orders, 
-      and(
-        gte(orders.createdAt, today),
-        lte(orders.createdAt, tomorrow)
-      )
-    );
-
-    const todayRevenueResult = await db
-      .select({
-        total: orders.totalAmount
-      })
+    const [productCount] = await db.select({ count: count() }).from(products).where(eq(products.isActive, true));
+    const [userCount] = await db.select({ count: count() }).from(users);
+    const [orderCount] = await db.select({ count: count() }).from(orders).where(gte(orders.createdAt, today));
+    const [revenueResult] = await db
+      .select({ total: sql<string>`COALESCE(SUM(${orders.totalAmount}), 0)` })
       .from(orders)
-      .where(
-        and(
-          gte(orders.createdAt, today),
-          lte(orders.createdAt, tomorrow),
-          eq(orders.status, 'completed')
-        )
-      );
-
-    const todayRevenue = todayRevenueResult
-      .reduce((sum, order) => sum + parseFloat(order.total), 0)
-      .toFixed(2);
+      .where(and(
+        gte(orders.createdAt, today),
+        eq(orders.status, 'completed')
+      ));
 
     return {
-      totalProducts,
-      totalUsers,
-      todayOrders,
-      todayRevenue,
+      totalProducts: productCount.count,
+      totalUsers: userCount.count,
+      todayOrders: orderCount.count,
+      todayRevenue: revenueResult.total || "0",
     };
   }
 
-    // Analytics
-    async getTopProducts(limit: number = 5): Promise<any[]> {
-      return [];
-    }
-    async getRevenueByCategory(): Promise<any[]> {
-      return [];
-    }
-
-    async createUser(userData: { email: string; password: string; firstName: string; lastName: string }): Promise<User> {
-        const userId = crypto.randomUUID();
-        const [newUser] = await db.insert(users).values({ id: userId, ...userData }).returning();
-        return newUser;
-    }
-
-    async getUserByEmail(email: string): Promise<User | undefined> {
-        const [user] = await db.select().from(users).where(eq(users.email, email));
-        return user;
-    }
-
-  // User management
-  async getUsers(filters?: { limit?: number; offset?: number }): Promise<User[]> {
-    let query = db.select().from(users);
-
-    if (filters?.limit) {
-      query = query.limit(filters.limit);
-    }
-
-    if (filters?.offset) {
-      query = query.offset(filters.offset);
-    }
-
-    return await query;
+  async getTopProducts(limit: number = 5): Promise<any[]> {
+    return await db
+      .select({
+        product: products,
+        totalSold: sql<number>`COALESCE(SUM(${orderItems.quantity}), 0)`,
+      })
+      .from(products)
+      .leftJoin(orderItems, eq(products.id, orderItems.productId))
+      .groupBy(products.id)
+      .orderBy(desc(sql`COALESCE(SUM(${orderItems.quantity}), 0)`))
+      .limit(limit);
   }
 
-  async updateUserStatus(userId: string, isBlocked: boolean): Promise<User | undefined> {
-    const [updatedUser] = await db
-      .update(users)
-      .set({ isBlocked, updatedAt: new Date() })
-      .where(eq(users.id, userId))
-      .returning();
-    return updatedUser;
+  async getRevenueByCategory(): Promise<any[]> {
+    return await db
+      .select({
+        categoryName: categories.name,
+        revenue: sql<string>`COALESCE(SUM(${orderItems.price} * ${orderItems.quantity}), 0)`,
+      })
+      .from(categories)
+      .leftJoin(products, eq(categories.id, products.categoryId))
+      .leftJoin(orderItems, eq(products.id, orderItems.productId))
+      .groupBy(categories.id, categories.name)
+      .orderBy(desc(sql`COALESCE(SUM(${orderItems.price} * ${orderItems.quantity}), 0)`));
   }
 }
 
-// Export the simple storage implementation
-export { storage } from "./storage-simple";
+export const storage = new DatabaseStorage();

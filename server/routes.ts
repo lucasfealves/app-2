@@ -2,7 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, hashPassword, comparePassword, generateToken } from "./auth";
-import { insertProductSchema, insertCategorySchema, insertBrandSchema, registerSchema, loginSchema } from "@shared/schema";
+import { insertProductSchema, insertCategorySchema, insertBrandSchema, insertTenantSchema, registerSchema, loginSchema } from "@shared/schema";
+import { nanoid } from 'nanoid';
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -111,10 +112,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Tenant routes
+  app.get('/api/tenants', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const tenants = await storage.getTenants();
+      res.json(tenants);
+    } catch (error) {
+      console.error("Error fetching tenants:", error);
+      res.status(500).json({ message: "Failed to fetch tenants" });
+    }
+  });
+
+  app.post('/api/tenants', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const tenantData = insertTenantSchema.parse({
+        ...req.body,
+        id: nanoid(),
+      });
+      
+      const tenant = await storage.createTenant(tenantData);
+      res.status(201).json(tenant);
+    } catch (error) {
+      console.error("Error creating tenant:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create tenant" });
+    }
+  });
+
+  app.get('/api/tenants/:slug', async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const tenant = await storage.getTenantBySlug(slug);
+      
+      if (!tenant) {
+        return res.status(404).json({ message: "Tenant not found" });
+      }
+      
+      res.json(tenant);
+    } catch (error) {
+      console.error("Error fetching tenant:", error);
+      res.status(500).json({ message: "Failed to fetch tenant" });
+    }
+  });
+
+  app.put('/api/tenants/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { id } = req.params;
+      const tenantData = insertTenantSchema.partial().parse(req.body);
+      
+      const tenant = await storage.updateTenant(id, tenantData);
+      if (!tenant) {
+        return res.status(404).json({ message: "Tenant not found" });
+      }
+      
+      res.json(tenant);
+    } catch (error) {
+      console.error("Error updating tenant:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update tenant" });
+    }
+  });
+
   // Categories routes
   app.get('/api/categories', async (req, res) => {
     try {
-      const categories = await storage.getCategories();
+      const tenantId = req.headers['x-tenant-id'] as string;
+      const categories = await storage.getCategories(tenantId);
       res.json(categories);
     } catch (error) {
       console.error("Error fetching categories:", error);

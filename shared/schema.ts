@@ -26,6 +26,21 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
+// Tenants table for multi-tenancy support
+export const tenants = pgTable("tenants", {
+  id: text("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  description: text("description"),
+  logo: text("logo"),
+  primaryColor: varchar("primary_color", { length: 7 }).default("#000000"),
+  secondaryColor: varchar("secondary_color", { length: 7 }).default("#ffffff"),
+  domain: varchar("domain", { length: 255 }),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // User storage table.
 // (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
 export const users = pgTable("users", {
@@ -37,6 +52,7 @@ export const users = pgTable("users", {
   profileImageUrl: text("profile_image_url"),
   isAdmin: boolean("is_admin").default(false),
   isBlocked: boolean("is_blocked").default(false),
+  tenantId: text("tenant_id").references(() => tenants.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -45,6 +61,7 @@ export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 255 }).notNull().unique(),
+  tenantId: text("tenant_id").references(() => tenants.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -52,6 +69,7 @@ export const brands = pgTable("brands", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 255 }).notNull().unique(),
+  tenantId: text("tenant_id").references(() => tenants.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -66,6 +84,7 @@ export const products = pgTable("products", {
   stock: integer("stock").default(0),
   categoryId: integer("category_id").references(() => categories.id),
   brandId: integer("brand_id").references(() => brands.id),
+  tenantId: text("tenant_id").references(() => tenants.id).notNull(),
   imageUrl: text("image_url"),
   images: text("images").array(),
   specifications: jsonb("specifications"),
@@ -86,6 +105,7 @@ export const productVariants = pgTable("product_variants", {
 export const carts = pgTable("carts", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id).notNull(),
+  tenantId: text("tenant_id").references(() => tenants.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -102,6 +122,7 @@ export const cartItems = pgTable("cart_items", {
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id).notNull(),
+  tenantId: text("tenant_id").references(() => tenants.id).notNull(),
   orderNumber: varchar("order_number", { length: 100 }).notNull().unique(),
   status: varchar("status", { length: 50 }).default("pending"),
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
@@ -133,20 +154,45 @@ export const payments = pgTable("payments", {
 });
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const tenantsRelations = relations(tenants, ({ many }) => ({
+  users: many(users),
+  categories: many(categories),
+  brands: many(brands),
+  products: many(products),
   carts: many(carts),
   orders: many(orders),
 }));
 
-export const categoriesRelations = relations(categories, ({ many }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [users.tenantId],
+    references: [tenants.id],
+  }),
+  carts: many(carts),
+  orders: many(orders),
+}));
+
+export const categoriesRelations = relations(categories, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [categories.tenantId],
+    references: [tenants.id],
+  }),
   products: many(products),
 }));
 
-export const brandsRelations = relations(brands, ({ many }) => ({
+export const brandsRelations = relations(brands, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [brands.tenantId],
+    references: [tenants.id],
+  }),
   products: many(products),
 }));
 
 export const productsRelations = relations(products, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [products.tenantId],
+    references: [tenants.id],
+  }),
   category: one(categories, {
     fields: [products.categoryId],
     references: [categories.id],
@@ -170,6 +216,10 @@ export const productVariantsRelations = relations(productVariants, ({ one, many 
 }));
 
 export const cartsRelations = relations(carts, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [carts.tenantId],
+    references: [tenants.id],
+  }),
   user: one(users, {
     fields: [carts.userId],
     references: [users.id],
@@ -193,6 +243,10 @@ export const cartItemsRelations = relations(cartItems, ({ one }) => ({
 }));
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [orders.tenantId],
+    references: [tenants.id],
+  }),
   user: one(users, {
     fields: [orders.userId],
     references: [users.id],
@@ -224,6 +278,11 @@ export const paymentsRelations = relations(payments, ({ one }) => ({
 }));
 
 // Insert schemas
+export const insertTenantSchema = createInsertSchema(tenants).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
   updatedAt: true,
@@ -294,6 +353,8 @@ export const loginSchema = z.object({
 });
 
 // Types
+export type Tenant = typeof tenants.$inferSelect;
+export type InsertTenant = z.infer<typeof insertTenantSchema>;
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type Category = typeof categories.$inferSelect;
