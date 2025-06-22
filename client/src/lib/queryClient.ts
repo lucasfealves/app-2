@@ -7,29 +7,35 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(endpoint: string, options: RequestInit = {}) {
+export async function apiRequest(method: string, endpoint: string, data?: any) {
   const token = localStorage.getItem('token');
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    ...options.headers,
   };
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(endpoint, {
-    ...options,
-    credentials: "include",
+  const options: RequestInit = {
+    method,
     headers,
-  });
+    credentials: "include",
+  };
+
+  if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+    options.body = JSON.stringify(data);
+  }
+
+  const response = await fetch(endpoint, options);
 
   if (!response.ok) {
     if (response.status === 401) {
       localStorage.removeItem('token');
       throw new Error('Unauthorized');
     }
-    throw new Error(`API Error: ${response.status}`);
+    const errorText = await response.text();
+    throw new Error(`${response.status}: ${errorText}`);
   }
 
   return response.json();
@@ -110,9 +116,6 @@ export const queryClient = new QueryClient({
     },
     mutations: {
       retry: false,
-      mutationFn: async ({ endpoint, options }: { endpoint: string; options?: RequestInit }) => {
-        return apiRequest(endpoint, options);
-      },
     },
   },
 });

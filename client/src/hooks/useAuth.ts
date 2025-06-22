@@ -13,7 +13,7 @@ export function useAuth() {
         throw new Error('No token');
       }
 
-      return apiRequest('/api/auth/user');
+      return apiRequest('GET', '/api/auth/user');
     },
   });
 
