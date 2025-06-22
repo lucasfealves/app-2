@@ -10,6 +10,7 @@ import {
   orderItems,
   payments,
   paymentSettings,
+  favorites,
   type User,
   type UpsertUser,
   type Category,
@@ -32,6 +33,8 @@ import {
   type InsertPayment,
   type PaymentSettings,
   type InsertPaymentSettings,
+  type Favorite,
+  type InsertFavorite,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, like, ilike, gte, lte, inArray } from "drizzle-orm";
@@ -127,6 +130,12 @@ export interface IStorage {
   // User management
   getUsers(filters?: { limit?: number; offset?: number }): Promise<User[]>;
   updateUserStatus(userId: string, isBlocked: boolean): Promise<User | undefined>;
+
+  // Favorites operations
+  getUserFavorites(userId: string): Promise<(Favorite & { product: Product })[]>;
+  addToFavorites(userId: string, productId: number): Promise<Favorite>;
+  removeFromFavorites(userId: string, productId: number): Promise<boolean>;
+  isProductFavorited(userId: string, productId: number): Promise<boolean>;
 
   // Payment settings
   getPaymentSettings(): Promise<any>;
@@ -665,6 +674,71 @@ export class DatabaseStorage implements IStorage {
     }
 
     return true;
+  }
+
+  // Favorites operations
+  async getUserFavorites(userId: string): Promise<(Favorite & { product: Product })[]> {
+    const userFavorites = await db
+      .select({
+        id: favorites.id,
+        userId: favorites.userId,
+        productId: favorites.productId,
+        createdAt: favorites.createdAt,
+        product: {
+          id: products.id,
+          name: products.name,
+          slug: products.slug,
+          description: products.description,
+          shortDescription: products.shortDescription,
+          price: products.price,
+          originalPrice: products.originalPrice,
+          stock: products.stock,
+          categoryId: products.categoryId,
+          brandId: products.brandId,
+          imageUrl: products.imageUrl,
+          images: products.images,
+          specifications: products.specifications,
+          isActive: products.isActive,
+          createdAt: products.createdAt,
+          updatedAt: products.updatedAt,
+        }
+      })
+      .from(favorites)
+      .leftJoin(products, eq(favorites.productId, products.id))
+      .where(eq(favorites.userId, userId))
+      .orderBy(desc(favorites.createdAt));
+
+    return userFavorites;
+  }
+
+  async addToFavorites(userId: string, productId: number): Promise<Favorite> {
+    const [favorite] = await db
+      .insert(favorites)
+      .values({ userId, productId })
+      .returning();
+    return favorite;
+  }
+
+  async removeFromFavorites(userId: string, productId: number): Promise<boolean> {
+    const result = await db
+      .delete(favorites)
+      .where(and(
+        eq(favorites.userId, userId),
+        eq(favorites.productId, productId)
+      ));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async isProductFavorited(userId: string, productId: number): Promise<boolean> {
+    const [favorite] = await db
+      .select({ id: favorites.id })
+      .from(favorites)
+      .where(and(
+        eq(favorites.userId, userId),
+        eq(favorites.productId, productId)
+      ))
+      .limit(1);
+    return !!favorite;
   }
 }
 

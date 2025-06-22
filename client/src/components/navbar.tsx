@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Search, User, Settings, Package, LogOut } from "lucide-react";
+import { ShoppingCart, Search, User, Settings, Package, LogOut, Heart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { logout } from "@/lib/authUtils";
 
@@ -92,6 +92,12 @@ export default function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link href="/favorites" className="w-full flex items-center">
+                    <Heart className="h-4 w-4 mr-2" />
+                    Meus Favoritos
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/orders" className="w-full flex items-center">
                     <Package className="h-4 w-4 mr-2" />

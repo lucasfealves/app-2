@@ -15,6 +15,7 @@ import Cart from "@/pages/cart";
 import Checkout from "@/pages/checkout";
 import Orders from "@/pages/orders";
 import OrderDetail from "@/pages/order-detail";
+import FavoritesPage from "@/pages/favorites";
 import Admin from "@/pages/admin";
 
 function Router() {
@@ -40,6 +41,7 @@ function Router() {
           <Route path="/checkout" component={Checkout} />
           <Route path="/orders" component={Orders} />
           <Route path="/orders/:id" component={OrderDetail} />
+          <Route path="/favorites" component={FavoritesPage} />
           <Route path="/admin" component={Admin} />
         </>
       )}

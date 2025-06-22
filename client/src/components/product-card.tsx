@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ShoppingCart, Eye, Heart, Star } from "lucide-react";
 import { Link } from "wouter";
+import FavoriteButton from "@/components/favorite-button";
 
 interface ProductCardProps {
   product: {
@@ -117,10 +118,18 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         )}
 
+        {/* Quick Actions */}
+        <div className="absolute top-3 right-3">
+          <FavoriteButton 
+            productId={product.id} 
+            className="bg-white/90 hover:bg-white shadow-lg border-0"
+          />
+        </div>
+
         {/* Quick Actions - Mobile Friendly */}
-        <div className="absolute top-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+        <div className="absolute top-3 right-12 flex space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
           <Button size="icon" variant="secondary" className="bg-white/95 hover:bg-white shadow-lg border-0 w-9 h-9">
-            <Heart className="h-4 w-4 text-gray-700" />
+            <Eye className="h-4 w-4 text-gray-700" />
           </Button>
         </div>
       </div>

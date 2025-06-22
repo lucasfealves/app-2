@@ -848,6 +848,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Favorites routes
+  app.get('/api/favorites', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const favorites = await storage.getUserFavorites(userId);
+      res.json(favorites);
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  app.post('/api/favorites/:productId', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const productId = parseInt(req.params.productId);
+      
+      if (isNaN(productId)) {
+        return res.status(400).json({ error: 'ID do produto inválido' });
+      }
+
+      // Check if product exists
+      const product = await storage.getProduct(productId);
+      if (!product) {
+        return res.status(404).json({ error: 'Produto não encontrado' });
+      }
+
+      // Check if already favorited
+      const isAlreadyFavorited = await storage.isProductFavorited(userId, productId);
+      if (isAlreadyFavorited) {
+        return res.status(400).json({ error: 'Produto já está nos favoritos' });
+      }
+
+      const favorite = await storage.addToFavorites(userId, productId);
+      res.status(201).json(favorite);
+    } catch (error) {
+      console.error('Error adding to favorites:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  app.delete('/api/favorites/:productId', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const productId = parseInt(req.params.productId);
+      
+      if (isNaN(productId)) {
+        return res.status(400).json({ error: 'ID do produto inválido' });
+      }
+
+      const removed = await storage.removeFromFavorites(userId, productId);
+      if (!removed) {
+        return res.status(404).json({ error: 'Favorito não encontrado' });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error removing from favorites:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  app.get('/api/favorites/check/:productId', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const productId = parseInt(req.params.productId);
+      
+      if (isNaN(productId)) {
+        return res.status(400).json({ error: 'ID do produto inválido' });
+      }
+
+      const isFavorited = await storage.isProductFavorited(userId, productId);
+      res.json({ isFavorited });
+    } catch (error) {
+      console.error('Error checking favorite status:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

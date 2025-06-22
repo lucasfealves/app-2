@@ -142,10 +142,20 @@ export const paymentSettings = pgTable("payment_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const favorites = pgTable("favorites", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").references(() => users.id).notNull(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_favorites_user_product").on(table.userId, table.productId),
+]);
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   carts: many(carts),
   orders: many(orders),
+  favorites: many(favorites),
 }));
 
 export const categoriesRelations = relations(categories, ({ many }) => ({
@@ -168,6 +178,7 @@ export const productsRelations = relations(products, ({ one, many }) => ({
   variants: many(productVariants),
   cartItems: many(cartItems),
   orderItems: many(orderItems),
+  favorites: many(favorites),
 }));
 
 export const productVariantsRelations = relations(productVariants, ({ one, many }) => ({
@@ -233,6 +244,17 @@ export const paymentsRelations = relations(payments, ({ one }) => ({
   }),
 }));
 
+export const favoritesRelations = relations(favorites, ({ one }) => ({
+  user: one(users, {
+    fields: [favorites.userId],
+    references: [users.id],
+  }),
+  product: one(products, {
+    fields: [favorites.productId],
+    references: [products.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
@@ -292,6 +314,11 @@ export const insertPaymentSettingsSchema = createInsertSchema(paymentSettings).o
   updatedAt: true,
 });
 
+export const insertFavoriteSchema = createInsertSchema(favorites).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Auth schemas
 export const registerSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -332,3 +359,5 @@ export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 export type PaymentSettings = typeof paymentSettings.$inferSelect;
 export type InsertPaymentSettings = z.infer<typeof insertPaymentSettingsSchema>;
+export type Favorite = typeof favorites.$inferSelect;
+export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
