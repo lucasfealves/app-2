@@ -32,14 +32,17 @@ interface Tenant {
 
 export default function TenantAdmin() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+  const [editingTenant, setEditingTenant] = useState<Partial<Tenant>>({});
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [newTenant, setNewTenant] = useState({
     name: "",
     slug: "",
     description: "",
-    primaryColor: "#1f2937",
-    secondaryColor: "#f3f4f6",
+    contactEmail: "",
+    contactPhone: "",
+    address: "",
     domain: "",
   });
 
@@ -375,10 +378,7 @@ export default function TenantAdmin() {
               {/* Informações Gerais */}
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div 
-                    className="w-12 h-12 rounded-lg border-2 flex items-center justify-center text-white font-bold"
-                    style={{ backgroundColor: selectedTenant.primaryColor }}
-                  >
+                  <div className="w-12 h-12 rounded-lg border-2 flex items-center justify-center bg-primary text-primary-foreground font-bold">
                     {selectedTenant.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
@@ -425,30 +425,26 @@ export default function TenantAdmin() {
                 </div>
 
                 <div className="space-y-4">
-                  <div>
-                    <Label className="text-sm font-medium flex items-center gap-2">
-                      <Palette className="w-4 h-4" />
-                      Paleta de Cores
-                    </Label>
-                    <div className="flex gap-3 mt-2">
-                      <div className="space-y-1">
-                        <div 
-                          className="w-12 h-12 rounded border"
-                          style={{ backgroundColor: selectedTenant.primaryColor }}
-                        />
-                        <p className="text-xs text-center font-mono">{selectedTenant.primaryColor}</p>
-                        <p className="text-xs text-center text-muted-foreground">Primária</p>
-                      </div>
-                      <div className="space-y-1">
-                        <div 
-                          className="w-12 h-12 rounded border"
-                          style={{ backgroundColor: selectedTenant.secondaryColor }}
-                        />
-                        <p className="text-xs text-center font-mono">{selectedTenant.secondaryColor}</p>
-                        <p className="text-xs text-center text-muted-foreground">Secundária</p>
-                      </div>
+                  {selectedTenant.contactEmail && (
+                    <div>
+                      <Label className="text-sm font-medium">Email de Contato</Label>
+                      <p className="text-sm mt-1">{selectedTenant.contactEmail}</p>
                     </div>
-                  </div>
+                  )}
+                  
+                  {selectedTenant.contactPhone && (
+                    <div>
+                      <Label className="text-sm font-medium">Telefone</Label>
+                      <p className="text-sm mt-1">{selectedTenant.contactPhone}</p>
+                    </div>
+                  )}
+                  
+                  {selectedTenant.address && (
+                    <div>
+                      <Label className="text-sm font-medium">Endereço</Label>
+                      <p className="text-sm mt-1">{selectedTenant.address}</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
