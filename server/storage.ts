@@ -9,6 +9,7 @@ import {
   orders,
   orderItems,
   payments,
+  paymentSettings,
   type User,
   type UpsertUser,
   type Category,
@@ -29,6 +30,8 @@ import {
   type InsertOrderItem,
   type Payment,
   type InsertPayment,
+  type PaymentSettings,
+  type InsertPaymentSettings,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, like, ilike, gte, lte, inArray } from "drizzle-orm";

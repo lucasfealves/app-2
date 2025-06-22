@@ -1,0 +1,25 @@
+ {"message":"Erro interno do serv…
+Error fetching payment settings: ReferenceError: paymentSettings is not defined
+    at DatabaseStorage.getPaymentSettings (/home/runner/workspace/server/storage.ts:561:45)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:690:38)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/runner/workspace/node_modules/express/lib/router/route.js:149:13)
+    at isAuthenticated (/home/runner/workspace/server/auth.ts:90:5)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+5:55:11 PM [express] GET /api/admin/payment-settings 500 in 60ms :: {"message":"Erro interno do serv…
+Error fetching payment settings: ReferenceError: paymentSettings is not defined
+    at DatabaseStorage.getPaymentSettings (/home/runner/workspace/server/storage.ts:561:45)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:690:38)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/runner/workspace/node_modules/express/lib/router/route.js:149:13)
+    at isAuthenticated (/home/runner/workspace/server/auth.ts:90:5)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+5:55:13 PM [express] GET /api/admin/payment-settings 500 in 60ms :: {"message":"Erro interno do serv…
+Error fetching payment settings: ReferenceError: paymentSettings is not defined
+    at DatabaseStorage.getPaymentSettings (/home/runner/workspace/server/storage.ts:561:45)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:690:38)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/runner/workspace/node_modules/express/lib/router/route.js:149:13)
+    at isAuthenticated (/home/runner/workspace/server/auth.ts:90:5)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+5:55:17 PM [express] GET /api/admin/payment-settings 500 in 60ms :: {"message":"Erro interno do serv…
