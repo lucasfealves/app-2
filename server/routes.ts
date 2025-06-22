@@ -34,29 +34,44 @@ function generatePixCode(params: {
 }): string {
   const { pixKey, merchantName, merchantCity, amount, orderId } = params;
   
-  // Build PIX payload following EMV standard
-  const merchantAccountInfo = `0014BR.GOV.BCB.PIX01${pixKey.length.toString().padStart(2, '0')}${pixKey}`;
+  console.log('Generating PIX code with params:', params);
+  
+  // Clean and validate inputs
+  const cleanPixKey = pixKey.trim();
+  const cleanMerchantName = merchantName.trim().substring(0, 25); // Max 25 chars
+  const cleanMerchantCity = merchantCity.trim().substring(0, 15); // Max 15 chars
   const amountStr = amount.toFixed(2);
+  
+  // Build EMV components
+  const pixKeyField = `01${cleanPixKey.length.toString().padStart(2, '0')}${cleanPixKey}`;
+  const merchantAccountInfo = `0014BR.GOV.BCB.PIX${pixKeyField}`;
   const additionalData = `05${orderId.length.toString().padStart(2, '0')}${orderId}`;
   
-  const payload = [
+  // Build complete payload
+  const components = [
     "000201", // Payload Format Indicator
-    "010212", // Point of Initiation Method
+    "010212", // Point of Initiation Method (dynamic)
     `26${merchantAccountInfo.length.toString().padStart(2, '0')}${merchantAccountInfo}`, // Merchant Account Information
-    "520400000", // Merchant Category Code
-    "5303986", // Transaction Currency (BRL)
+    "52040000", // Merchant Category Code (0000 = not specified)
+    "5303986", // Transaction Currency (986 = BRL)
     `54${amountStr.length.toString().padStart(2, '0')}${amountStr}`, // Transaction Amount
     "5802BR", // Country Code
-    `59${merchantName.length.toString().padStart(2, '0')}${merchantName}`, // Merchant Name
-    `60${merchantCity.length.toString().padStart(2, '0')}${merchantCity}`, // Merchant City
-    `62${additionalData.length.toString().padStart(2, '0')}${additionalData}`, // Additional Data
+    `59${cleanMerchantName.length.toString().padStart(2, '0')}${cleanMerchantName}`, // Merchant Name
+    `60${cleanMerchantCity.length.toString().padStart(2, '0')}${cleanMerchantCity}`, // Merchant City
+    `62${additionalData.length.toString().padStart(2, '0')}${additionalData}`, // Additional Data Field Template
     "6304" // CRC placeholder
-  ].join("");
+  ];
+  
+  const payload = components.join("");
   
   // Calculate CRC16 checksum
   const crc = calculateCRC16(payload).toString(16).toUpperCase().padStart(4, '0');
+  const finalPixCode = payload + crc;
   
-  return payload + crc;
+  console.log('Generated PIX code:', finalPixCode);
+  console.log('PIX code length:', finalPixCode.length);
+  
+  return finalPixCode;
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
