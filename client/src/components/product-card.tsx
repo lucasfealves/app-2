@@ -26,9 +26,15 @@ interface ProductCardProps {
       name: string;
     };
   };
+  onAddToCart?: (productId: number, quantity: number) => void;
+  tenantColors?: {
+    primary?: string;
+    secondary?: string;
+    accent?: string;
+  };
 }
 
-function ProductCard({ product }: ProductCardProps) {
+function ProductCard({ product, onAddToCart, tenantColors = {} }: ProductCardProps) {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -129,7 +135,15 @@ function ProductCard({ product }: ProductCardProps) {
         {/* Brand & Category */}
         {product.brand && (
           <div className="flex items-center justify-between">
-            <Badge variant="outline" className="text-xs font-medium text-blue-600 border-blue-200 bg-blue-50">
+            <Badge 
+              variant="outline" 
+              className="text-xs font-medium"
+              style={{
+                color: tenantColors.primary || '#2563eb',
+                borderColor: `${tenantColors.primary}40` || '#dbeafe',
+                backgroundColor: `${tenantColors.primary}10` || '#eff6ff'
+              }}
+            >
               {product.brand.name}
             </Badge>
             {product.stock > 0 && product.stock <= 5 && (

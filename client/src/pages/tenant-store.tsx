@@ -93,18 +93,28 @@ export default function TenantStore() {
     if (tenant) {
       const root = document.documentElement;
       
-      // Apply primary color
+      // Debug: log colors being applied
+      console.log('Applying tenant colors:', {
+        primary: tenant.primaryColor,
+        secondary: tenant.secondaryColor,
+        accent: tenant.accentColor
+      });
+      
+      // Apply primary color to CSS variables
       if (tenant.primaryColor) {
+        root.style.setProperty('--tenant-primary', tenant.primaryColor);
         root.style.setProperty('--primary', tenant.primaryColor);
       }
       
       // Apply secondary color  
       if (tenant.secondaryColor) {
+        root.style.setProperty('--tenant-secondary', tenant.secondaryColor);
         root.style.setProperty('--secondary', tenant.secondaryColor);
       }
       
       // Apply accent color
       if (tenant.accentColor) {
+        root.style.setProperty('--tenant-accent', tenant.accentColor);
         root.style.setProperty('--accent', tenant.accentColor);
       }
     }
@@ -112,6 +122,9 @@ export default function TenantStore() {
     // Cleanup function to reset colors when component unmounts
     return () => {
       const root = document.documentElement;
+      root.style.removeProperty('--tenant-primary');
+      root.style.removeProperty('--tenant-secondary');  
+      root.style.removeProperty('--tenant-accent');
       root.style.removeProperty('--primary');
       root.style.removeProperty('--secondary');  
       root.style.removeProperty('--accent');
@@ -144,7 +157,13 @@ export default function TenantStore() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header da loja */}
-      <div className="relative bg-white shadow-xl border-b border-slate-200">
+      <div 
+        className="relative shadow-xl border-b"
+        style={{
+          backgroundColor: tenant.secondaryColor || '#ffffff',
+          borderBottomColor: tenant.primaryColor || '#e2e8f0'
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col lg:flex-row items-start lg:items-center space-y-6 lg:space-y-0 lg:space-x-8">
             <div className="relative">
@@ -188,7 +207,10 @@ export default function TenantStore() {
             
             <div className="flex-1 space-y-4">
               <div>
-                <h1 className="text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight">
+                <h1 
+                  className="text-4xl lg:text-5xl font-bold tracking-tight"
+                  style={{ color: tenant.primaryColor || '#0f172a' }}
+                >
                   {tenant.name}
                 </h1>
                 {tenant.description && (
@@ -200,27 +222,39 @@ export default function TenantStore() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {tenant.contactEmail && (
-                  <div className="flex items-center bg-slate-50 rounded-lg px-3 py-2">
-                    <Mail className="h-5 w-5 text-slate-400 mr-3 flex-shrink-0" />
-                    <span className="text-sm text-slate-700 font-medium truncate">{tenant.contactEmail}</span>
+                  <div 
+                    className="flex items-center rounded-lg px-3 py-2"
+                    style={{ backgroundColor: `${tenant.primaryColor}10` || '#f8fafc' }}
+                  >
+                    <Mail className="h-5 w-5 mr-3 flex-shrink-0" style={{ color: tenant.primaryColor || '#64748b' }} />
+                    <span className="text-sm font-medium truncate" style={{ color: tenant.primaryColor || '#334155' }}>{tenant.contactEmail}</span>
                   </div>
                 )}
                 {tenant.contactPhone && (
-                  <div className="flex items-center bg-slate-50 rounded-lg px-3 py-2">
-                    <Phone className="h-5 w-5 text-slate-400 mr-3 flex-shrink-0" />
-                    <span className="text-sm text-slate-700 font-medium">{tenant.contactPhone}</span>
+                  <div 
+                    className="flex items-center rounded-lg px-3 py-2"
+                    style={{ backgroundColor: `${tenant.primaryColor}10` || '#f8fafc' }}
+                  >
+                    <Phone className="h-5 w-5 mr-3 flex-shrink-0" style={{ color: tenant.primaryColor || '#64748b' }} />
+                    <span className="text-sm font-medium" style={{ color: tenant.primaryColor || '#334155' }}>{tenant.contactPhone}</span>
                   </div>
                 )}
                 {tenant.address && (
-                  <div className="flex items-center bg-slate-50 rounded-lg px-3 py-2">
-                    <MapPin className="h-5 w-5 text-slate-400 mr-3 flex-shrink-0" />
-                    <span className="text-sm text-slate-700 font-medium truncate">{tenant.address}</span>
+                  <div 
+                    className="flex items-center rounded-lg px-3 py-2"
+                    style={{ backgroundColor: `${tenant.primaryColor}10` || '#f8fafc' }}
+                  >
+                    <MapPin className="h-5 w-5 mr-3 flex-shrink-0" style={{ color: tenant.primaryColor || '#64748b' }} />
+                    <span className="text-sm font-medium truncate" style={{ color: tenant.primaryColor || '#334155' }}>{tenant.address}</span>
                   </div>
                 )}
                 {tenant.domain && (
-                  <div className="flex items-center bg-slate-50 rounded-lg px-3 py-2">
-                    <Globe className="h-5 w-5 text-slate-400 mr-3 flex-shrink-0" />
-                    <span className="text-sm text-slate-700 font-medium truncate">{tenant.domain}</span>
+                  <div 
+                    className="flex items-center rounded-lg px-3 py-2"
+                    style={{ backgroundColor: `${tenant.primaryColor}10` || '#f8fafc' }}
+                  >
+                    <Globe className="h-5 w-5 mr-3 flex-shrink-0" style={{ color: tenant.primaryColor || '#64748b' }} />
+                    <span className="text-sm font-medium truncate" style={{ color: tenant.primaryColor || '#334155' }}>{tenant.domain}</span>
                   </div>
                 )}
               </div>
@@ -293,6 +327,11 @@ export default function TenantStore() {
                         product={product}
                         onAddToCart={(productId, quantity) => {
                           console.log(`Added ${quantity} of product ${productId} to cart`);
+                        }}
+                        tenantColors={{
+                          primary: tenant?.primaryColor,
+                          secondary: tenant?.secondaryColor,
+                          accent: tenant?.accentColor
                         }}
                       />
                     </div>
