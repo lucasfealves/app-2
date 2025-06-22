@@ -4,6 +4,7 @@ import {
   varchar,
   timestamp,
   jsonb,
+  json,
   index,
   serial,
   integer,
@@ -28,15 +29,19 @@ export const sessions = pgTable(
 
 // Tenants table for multi-tenancy support
 export const tenants = pgTable("tenants", {
-  id: text("id").primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  domain: text("domain"),
   description: text("description"),
-  logo: text("logo"),
-  primaryColor: varchar("primary_color", { length: 7 }).default("#000000"),
-  secondaryColor: varchar("secondary_color", { length: 7 }).default("#ffffff"),
-  domain: varchar("domain", { length: 255 }),
+  logoUrl: text("logo_url"),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  address: text("address"),
+  settings: json("settings"),
   isActive: boolean("is_active").default(true),
+  subscriptionPlan: text("subscription_plan").default("basic"),
+  subscriptionStatus: text("subscription_status").default("active"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -52,7 +57,7 @@ export const users = pgTable("users", {
   profileImageUrl: text("profile_image_url"),
   isAdmin: boolean("is_admin").default(false),
   isBlocked: boolean("is_blocked").default(false),
-  tenantId: text("tenant_id").references(() => tenants.id),
+  tenantId: integer("tenant_id").references(() => tenants.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -61,7 +66,7 @@ export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 255 }).notNull().unique(),
-  tenantId: text("tenant_id").references(() => tenants.id).notNull(),
+  tenantId: integer("tenant_id").references(() => tenants.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -69,7 +74,7 @@ export const brands = pgTable("brands", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 255 }).notNull().unique(),
-  tenantId: text("tenant_id").references(() => tenants.id).notNull(),
+  tenantId: integer("tenant_id").references(() => tenants.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

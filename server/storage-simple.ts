@@ -55,13 +55,29 @@ export class DatabaseStorage {
   }
 
   async getTenant(id: number): Promise<Tenant | undefined> {
-    const [tenant] = await db.select().from(tenants).where(eq(tenants.id, id));
-    return tenant;
+    const result = await db.execute(sql`
+      SELECT id, name, slug, domain, description, logo_url as "logoUrl", 
+             contact_email as "contactEmail", contact_phone as "contactPhone", 
+             address, settings, is_active as "isActive", 
+             subscription_plan as "subscriptionPlan", subscription_status as "subscriptionStatus",
+             created_at as "createdAt", updated_at as "updatedAt"
+      FROM tenants 
+      WHERE id = ${id}
+    `);
+    return result.rows[0] as Tenant | undefined;
   }
 
   async getTenantBySlug(slug: string): Promise<Tenant | undefined> {
-    const [tenant] = await db.select().from(tenants).where(eq(tenants.slug, slug));
-    return tenant;
+    const result = await db.execute(sql`
+      SELECT id, name, slug, domain, description, logo_url as "logoUrl", 
+             contact_email as "contactEmail", contact_phone as "contactPhone", 
+             address, settings, is_active as "isActive", 
+             subscription_plan as "subscriptionPlan", subscription_status as "subscriptionStatus",
+             created_at as "createdAt", updated_at as "updatedAt"
+      FROM tenants 
+      WHERE slug = ${slug}
+    `);
+    return result.rows[0] as Tenant | undefined;
   }
 
   async createTenant(tenant: InsertTenant): Promise<Tenant> {
