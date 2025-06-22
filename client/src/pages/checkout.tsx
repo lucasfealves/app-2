@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import QRCode from "qrcode";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -158,6 +159,20 @@ export default function Checkout() {
         const code = data.pixCode || "00020126360014BR.GOV.BCB.PIX0114+55119999999990204000053039865802BR5925LOJA EXEMPLO6009SAO PAULO61080540900062070503***6304";
         setPixCode(code);
         console.log('PIX code set to:', code);
+        
+        // Generate QR Code
+        QRCode.toDataURL(code, {
+          width: 200,
+          margin: 1,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+          }
+        }).then(url => {
+          setQrCodeUrl(url);
+        }).catch(err => {
+          console.error('Error generating QR Code:', err);
+        });
       } else {
         // For non-PIX payments, redirect to orders
         setTimeout(() => {
@@ -332,6 +347,27 @@ export default function Checkout() {
                 <p className="text-gray-600 mb-6">Finalize o pagamento escaneando o QR Code PIX</p>
                 
                 <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-6 mb-6">
+                  {/* QR Code Visual */}
+                  <div className="bg-white p-4 rounded-lg border mb-4 text-center">
+                    <div className="w-52 h-52 mx-auto bg-white rounded-lg flex items-center justify-center mb-3">
+                      {qrCodeUrl ? (
+                        <img 
+                          src={qrCodeUrl} 
+                          alt="QR Code PIX" 
+                          className="w-48 h-48 rounded-lg"
+                        />
+                      ) : (
+                        <div className="text-center">
+                          <QrCode className="h-24 w-24 text-gray-600 mx-auto mb-2" />
+                          <p className="text-xs text-gray-500">Gerando QR Code...</p>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 font-medium">Escaneie com seu banco</p>
+                    <p className="text-xs text-gray-400 mt-1">Ou use o código copia e cola abaixo</p>
+                  </div>
+                  
+                  {/* PIX Code */}
                   <div className="text-xs font-mono break-all text-gray-600 bg-gray-50 p-3 rounded">
                     {pixCode}
                   </div>
