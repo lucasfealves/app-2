@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Heart, Trash2, ShoppingCart } from "lucide-react";
+import { Heart, Trash2, ShoppingCart, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -176,9 +176,25 @@ export default function FavoritesPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center gap-2 mb-8">
-        <Heart className="h-8 w-8 text-red-500" />
-        <h1 className="text-3xl font-bold">Meus Favoritos</h1>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <Link href="/">
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar ao Catálogo
+            </Button>
+          </Link>
+          <div className="flex items-center gap-2">
+            <Heart className="h-8 w-8 text-red-500" />
+            <h1 className="text-3xl font-bold">Meus Favoritos</h1>
+          </div>
+        </div>
+        <Link href="/cart">
+          <Button>
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            Ver Carrinho
+          </Button>
+        </Link>
       </div>
 
       {favorites.length === 0 ? (
@@ -190,9 +206,17 @@ export default function FavoritesPage() {
           <p className="text-gray-500 mb-6">
             Adicione produtos aos seus favoritos para vê-los aqui
           </p>
-          <Link href="/">
-            <Button>Explorar Produtos</Button>
-          </Link>
+          <div className="flex gap-4 justify-center">
+            <Link href="/">
+              <Button>Explorar Produtos</Button>
+            </Link>
+            <Link href="/cart">
+              <Button variant="outline">
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Ver Carrinho
+              </Button>
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
