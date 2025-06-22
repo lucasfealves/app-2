@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,8 @@ export default function PaymentSettings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
+  const [localSettings, setLocalSettings] = useState<PaymentSettings | null>(null);
+  const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ['/api/admin/payment-settings'],
@@ -61,6 +63,13 @@ export default function PaymentSettings() {
       return response as PaymentSettings;
     }
   });
+
+  // Update local settings when data changes
+  useEffect(() => {
+    if (settings && !localSettings) {
+      setLocalSettings(settings);
+    }
+  }, [settings, localSettings]);
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: Partial<PaymentSettings>) => {
@@ -105,11 +114,61 @@ export default function PaymentSettings() {
     setShowSecrets(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleSaveSettings = (section: string, data: any) => {
-    updateSettingsMutation.mutate({ provider: section, ...data });
+  const debouncedSave = useCallback((section: string, data: any) => {
+    if (saveTimeout) {
+      clearTimeout(saveTimeout);
+    }
+    
+    const timeout = setTimeout(() => {
+      updateSettingsMutation.mutate({ provider: section, ...data });
+    }, 1000); // Save after 1 second of no changes
+    
+    setSaveTimeout(timeout);
+  }, [saveTimeout, updateSettingsMutation]);
+
+  const handleInputChange = (section: string, field: string, value: any) => {
+    // Update local state immediately for UI responsiveness
+    setLocalSettings(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        [section]: {
+          ...prev[section as keyof typeof prev],
+          [field]: value
+        }
+      };
+    });
+
+    // Debounce the actual save
+    const newData = {
+      ...localSettings?.[section as keyof typeof localSettings],
+      [field]: value
+    };
+    debouncedSave(section, newData);
   };
 
-  if (isLoading) {
+  const handleToggleChange = (section: string, enabled: boolean) => {
+    // Update local state immediately
+    setLocalSettings(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        [section]: {
+          ...prev[section as keyof typeof prev],
+          enabled
+        }
+      };
+    });
+
+    // Save immediately for toggles (no debounce)
+    const newData = {
+      ...localSettings?.[section as keyof typeof localSettings],
+      enabled
+    };
+    updateSettingsMutation.mutate({ provider: section, ...newData });
+  };
+
+  if (isLoading || !localSettings) {
     return (
       <div className="space-y-6">
         <div className="h-8 bg-gray-200 rounded animate-pulse" />
@@ -153,7 +212,7 @@ export default function PaymentSettings() {
                 <CardTitle className="flex items-center space-x-2">
                   <QrCode className="h-5 w-5" />
                   <span>Configuração PIX</span>
-                  {settings?.pix?.enabled ? (
+                  {localSettings?.pix?.enabled ? (
                     <Badge variant="default" className="bg-green-100 text-green-800">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Ativo
@@ -170,8 +229,8 @@ export default function PaymentSettings() {
                 </CardDescription>
               </div>
               <Switch 
-                checked={settings?.pix?.enabled || false}
-                onCheckedChange={(enabled) => handleSaveSettings('pix', { enabled, ...settings?.pix })}
+                checked={localSettings?.pix?.enabled || false}
+                onCheckedChange={(enabled) => handleToggleChange('pix', enabled)}
               />
             </CardHeader>
             <CardContent className="space-y-4">
@@ -180,8 +239,8 @@ export default function PaymentSettings() {
                   <Label htmlFor="pixKey">Chave PIX</Label>
                   <Input
                     id="pixKey"
-                    value={settings?.pix?.pixKey || ""}
-                    onChange={(e) => handleSaveSettings('pix', { enabled: settings?.pix?.enabled, pixKey: e.target.value, merchantName: settings?.pix?.merchantName, merchantCity: settings?.pix?.merchantCity, discount: settings?.pix?.discount })}
+                    value={localSettings?.pix?.pixKey || ""}
+                    onChange={(e) => handleInputChange('pix', 'pixKey', e.target.value)}
                     placeholder="email@exemplo.com ou CPF/CNPJ"
                   />
                 </div>
@@ -189,8 +248,8 @@ export default function PaymentSettings() {
                   <Label htmlFor="merchantName">Nome do Estabelecimento</Label>
                   <Input
                     id="merchantName"
-                    value={settings?.pix?.merchantName || ""}
-                    onChange={(e) => handleSaveSettings('pix', { enabled: settings?.pix?.enabled, pixKey: settings?.pix?.pixKey, merchantName: e.target.value, merchantCity: settings?.pix?.merchantCity, discount: settings?.pix?.discount })}
+                    value={localSettings?.pix?.merchantName || ""}
+                    onChange={(e) => handleInputChange('pix', 'merchantName', e.target.value)}
                     placeholder="Minha Loja LTDA"
                   />
                 </div>
@@ -201,8 +260,8 @@ export default function PaymentSettings() {
                   <Label htmlFor="merchantCity">Cidade</Label>
                   <Input
                     id="merchantCity"
-                    value={settings?.pix?.merchantCity || ""}
-                    onChange={(e) => handleSaveSettings('pix', { enabled: settings?.pix?.enabled, pixKey: settings?.pix?.pixKey, merchantName: settings?.pix?.merchantName, merchantCity: e.target.value, discount: settings?.pix?.discount })}
+                    value={localSettings?.pix?.merchantCity || ""}
+                    onChange={(e) => handleInputChange('pix', 'merchantCity', e.target.value)}
                     placeholder="São Paulo"
                   />
                 </div>
@@ -214,8 +273,8 @@ export default function PaymentSettings() {
                     min="0"
                     max="100"
                     step="0.1"
-                    value={settings?.pix?.discount || 0}
-                    onChange={(e) => handleSaveSettings('pix', { enabled: settings?.pix?.enabled, pixKey: settings?.pix?.pixKey, merchantName: settings?.pix?.merchantName, merchantCity: settings?.pix?.merchantCity, discount: parseFloat(e.target.value) || 0 })}
+                    value={localSettings?.pix?.discount || 0}
+                    onChange={(e) => handleInputChange('pix', 'discount', parseFloat(e.target.value) || 0)}
                     placeholder="5.0"
                   />
                 </div>
@@ -240,7 +299,7 @@ export default function PaymentSettings() {
                 <CardTitle className="flex items-center space-x-2">
                   <CreditCard className="h-5 w-5" />
                   <span>Configuração Cartão de Crédito</span>
-                  {settings?.creditCard?.enabled ? (
+                  {localSettings?.creditCard?.enabled ? (
                     <Badge variant="default" className="bg-green-100 text-green-800">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Ativo
@@ -257,8 +316,8 @@ export default function PaymentSettings() {
                 </CardDescription>
               </div>
               <Switch 
-                checked={settings?.creditCard?.enabled || false}
-                onCheckedChange={(enabled) => handleSaveSettings('creditCard', { enabled, ...settings?.creditCard })}
+                checked={localSettings?.creditCard?.enabled || false}
+                onCheckedChange={(enabled) => handleToggleChange('creditCard', enabled)}
               />
             </CardHeader>
             <CardContent className="space-y-4">
@@ -267,8 +326,8 @@ export default function PaymentSettings() {
                 <select 
                   id="processor"
                   className="w-full p-2 border rounded-md"
-                  value={settings?.creditCard?.processor || "stripe"}
-                  onChange={(e) => handleSaveSettings('creditCard', { enabled: settings?.creditCard?.enabled, processor: e.target.value, publicKey: settings?.creditCard?.publicKey, secretKey: settings?.creditCard?.secretKey, webhookUrl: settings?.creditCard?.webhookUrl })}
+                  value={localSettings?.creditCard?.processor || "stripe"}
+                  onChange={(e) => handleInputChange('creditCard', 'processor', e.target.value)}
                 >
                   <option value="stripe">Stripe</option>
                   <option value="mercadopago">Mercado Pago</option>
@@ -282,8 +341,8 @@ export default function PaymentSettings() {
                   <Label htmlFor="publicKey">Chave Pública</Label>
                   <Input
                     id="publicKey"
-                    value={settings?.creditCard?.publicKey || ""}
-                    onChange={(e) => handleSaveSettings('creditCard', { enabled: settings?.creditCard?.enabled, processor: settings?.creditCard?.processor, publicKey: e.target.value, secretKey: settings?.creditCard?.secretKey, webhookUrl: settings?.creditCard?.webhookUrl })}
+                    value={localSettings?.creditCard?.publicKey || ""}
+                    onChange={(e) => handleInputChange('creditCard', 'publicKey', e.target.value)}
                     placeholder="pk_live_..."
                   />
                 </div>
@@ -293,8 +352,8 @@ export default function PaymentSettings() {
                     <Input
                       id="secretKey"
                       type={showSecrets.secretKey ? "text" : "password"}
-                      value={settings?.creditCard?.secretKey || ""}
-                      onChange={(e) => handleSaveSettings('creditCard', { enabled: settings?.creditCard?.enabled, processor: settings?.creditCard?.processor, publicKey: settings?.creditCard?.publicKey, secretKey: e.target.value, webhookUrl: settings?.creditCard?.webhookUrl })}
+                      value={localSettings?.creditCard?.secretKey || ""}
+                      onChange={(e) => handleInputChange('creditCard', 'secretKey', e.target.value)}
                       placeholder="sk_live_..."
                     />
                     <Button
@@ -314,8 +373,8 @@ export default function PaymentSettings() {
                 <Label htmlFor="webhookUrl">URL do Webhook</Label>
                 <Input
                   id="webhookUrl"
-                  value={settings?.creditCard?.webhookUrl || ""}
-                  onChange={(e) => handleSaveSettings('creditCard', { enabled: settings?.creditCard?.enabled, processor: settings?.creditCard?.processor, publicKey: settings?.creditCard?.publicKey, secretKey: settings?.creditCard?.secretKey, webhookUrl: e.target.value })}
+                  value={localSettings?.creditCard?.webhookUrl || ""}
+                  onChange={(e) => handleInputChange('creditCard', 'webhookUrl', e.target.value)}
                   placeholder="https://meusite.com/api/webhooks/payment"
                 />
               </div>
@@ -348,7 +407,7 @@ export default function PaymentSettings() {
                 <CardTitle className="flex items-center space-x-2">
                   <Smartphone className="h-5 w-5" />
                   <span>Configuração Apple Pay</span>
-                  {settings?.applePay?.enabled ? (
+                  {localSettings?.applePay?.enabled ? (
                     <Badge variant="default" className="bg-green-100 text-green-800">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Ativo
@@ -365,8 +424,8 @@ export default function PaymentSettings() {
                 </CardDescription>
               </div>
               <Switch 
-                checked={settings?.applePay?.enabled || false}
-                onCheckedChange={(enabled) => handleSaveSettings('applePay', { enabled, ...settings?.applePay })}
+                checked={localSettings?.applePay?.enabled || false}
+                onCheckedChange={(enabled) => handleToggleChange('applePay', enabled)}
               />
             </CardHeader>
             <CardContent className="space-y-4">
@@ -375,8 +434,8 @@ export default function PaymentSettings() {
                   <Label htmlFor="appleMerchantId">Merchant ID</Label>
                   <Input
                     id="appleMerchantId"
-                    value={settings?.applePay?.merchantId || ""}
-                    onChange={(e) => handleSaveSettings('applePay', { enabled: settings?.applePay?.enabled, merchantId: e.target.value, domainName: settings?.applePay?.domainName })}
+                    value={localSettings?.applePay?.merchantId || ""}
+                    onChange={(e) => handleInputChange('applePay', 'merchantId', e.target.value)}
                     placeholder="merchant.com.exemplo.loja"
                   />
                 </div>
@@ -384,8 +443,8 @@ export default function PaymentSettings() {
                   <Label htmlFor="domainName">Nome do Domínio</Label>
                   <Input
                     id="domainName"
-                    value={settings?.applePay?.domainName || ""}
-                    onChange={(e) => handleSaveSettings('applePay', { enabled: settings?.applePay?.enabled, merchantId: settings?.applePay?.merchantId, domainName: e.target.value })}
+                    value={localSettings?.applePay?.domainName || ""}
+                    onChange={(e) => handleInputChange('applePay', 'domainName', e.target.value)}
                     placeholder="minhaloja.com"
                   />
                 </div>
@@ -409,7 +468,7 @@ export default function PaymentSettings() {
                 <CardTitle className="flex items-center space-x-2">
                   <Settings className="h-5 w-5" />
                   <span>Configuração Google Pay</span>
-                  {settings?.googlePay?.enabled ? (
+                  {localSettings?.googlePay?.enabled ? (
                     <Badge variant="default" className="bg-green-100 text-green-800">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Ativo
@@ -426,8 +485,8 @@ export default function PaymentSettings() {
                 </CardDescription>
               </div>
               <Switch 
-                checked={settings?.googlePay?.enabled || false}
-                onCheckedChange={(enabled) => handleSaveSettings('googlePay', { enabled, ...settings?.googlePay })}
+                checked={localSettings?.googlePay?.enabled || false}
+                onCheckedChange={(enabled) => handleToggleChange('googlePay', enabled)}
               />
             </CardHeader>
             <CardContent className="space-y-4">
@@ -436,8 +495,8 @@ export default function PaymentSettings() {
                   <Label htmlFor="googleMerchantId">Merchant ID</Label>
                   <Input
                     id="googleMerchantId"
-                    value={settings?.googlePay?.merchantId || ""}
-                    onChange={(e) => handleSaveSettings('googlePay', { enabled: settings?.googlePay?.enabled, merchantId: e.target.value, gatewayMerchantId: settings?.googlePay?.gatewayMerchantId })}
+                    value={localSettings?.googlePay?.merchantId || ""}
+                    onChange={(e) => handleInputChange('googlePay', 'merchantId', e.target.value)}
                     placeholder="12345678901234567890"
                   />
                 </div>
@@ -445,8 +504,8 @@ export default function PaymentSettings() {
                   <Label htmlFor="gatewayMerchantId">Gateway Merchant ID</Label>
                   <Input
                     id="gatewayMerchantId"
-                    value={settings?.googlePay?.gatewayMerchantId || ""}
-                    onChange={(e) => handleSaveSettings('googlePay', { enabled: settings?.googlePay?.enabled, merchantId: settings?.googlePay?.merchantId, gatewayMerchantId: e.target.value })}
+                    value={localSettings?.googlePay?.gatewayMerchantId || ""}
+                    onChange={(e) => handleInputChange('googlePay', 'gatewayMerchantId', e.target.value)}
                     placeholder="gateway_merchant_id"
                   />
                 </div>
