@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, Package, AlertCircle, MapPin, CreditCard, Truck } from "lucide-react";
+import { ArrowLeft, Package, AlertCircle, MapPin, CreditCard, Truck, QrCode, CheckCircle } from "lucide-react";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -217,12 +217,32 @@ export default function OrderDetail() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <p className="text-sm">
-                    <span className="font-medium">Método:</span> {order.paymentMethod}
-                  </p>
-                  <p className="text-sm">
-                    <span className="font-medium">Status:</span>{' '}
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    {order.paymentMethod === 'pix' && (
+                      <div className="bg-green-100 rounded-full p-2">
+                        <QrCode className="h-4 w-4 text-green-600" />
+                      </div>
+                    )}
+                    {order.paymentMethod === 'credit' && (
+                      <div className="bg-blue-100 rounded-full p-2">
+                        <CreditCard className="h-4 w-4 text-blue-600" />
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm font-medium">
+                        {order.paymentMethod === 'pix' ? 'PIX' : 
+                         order.paymentMethod === 'credit' ? 'Cartão de Crédito' : 
+                         order.paymentMethod}
+                      </p>
+                      {order.paymentMethod === 'pix' && (
+                        <p className="text-xs text-green-600">Desconto de 5% aplicado</p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium">Status:</span>
                     <Badge 
                       className={order.paymentStatus === 'completed' 
                         ? 'bg-green-100 text-green-800' 
@@ -231,7 +251,31 @@ export default function OrderDetail() {
                     >
                       {order.paymentStatus === 'completed' ? 'Pago' : 'Pendente'}
                     </Badge>
-                  </p>
+                  </div>
+
+                  {order.paymentMethod === 'pix' && order.paymentStatus === 'pending' && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <AlertCircle className="h-4 w-4 text-yellow-600" />
+                        <span className="text-sm font-medium text-yellow-800">Aguardando Pagamento PIX</span>
+                      </div>
+                      <p className="text-xs text-yellow-700">
+                        O pagamento via PIX ainda não foi confirmado. Verifique se o pagamento foi realizado no seu banco.
+                      </p>
+                    </div>
+                  )}
+
+                  {order.paymentMethod === 'pix' && order.paymentStatus === 'completed' && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-medium text-green-800">Pagamento PIX Confirmado</span>
+                      </div>
+                      <p className="text-xs text-green-700">
+                        Pagamento processado instantaneamente com desconto aplicado.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
