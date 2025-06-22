@@ -48,14 +48,19 @@ export interface IStorage {
   // User operations (IMPORTANT) these user operations are mandatory for Replit Auth.
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  getUsers(filters?: { limit?: number; offset?: number }): Promise<User[]>;
+  updateUserTenant(userId: string, tenantId: number): Promise<User | undefined>;
 
   // Category operations
   getCategories(tenantId?: string): Promise<Category[]>;
   createCategory(category: InsertCategory): Promise<Category>;
+  updateCategoryTenant(categoryId: number, tenantId: number): Promise<Category | undefined>;
 
   // Brand operations
   getBrands(tenantId?: string): Promise<Brand[]>;
   createBrand(brand: InsertBrand): Promise<Brand>;
+  updateBrandTenant(brandId: number, tenantId: number): Promise<Brand | undefined>;
+  updateProductTenant(productId: number, tenantId: number): Promise<Product | undefined>;
 
   // Product operations
   getProducts(filters?: {
