@@ -31,6 +31,40 @@
   --material-green: 123 46% 49%; /* #4CAF50 */
   --material-red: 4 90% 58%; /* #F44336 */
   --material-orange: 36 100% 50%; /* #FF9800 */
+  
+  /* Tenant colors - will be dynamically updated */
+  --tenant-primary: #1f2937;
+  --tenant-secondary: #f3f4f6;
+  --tenant-accent: #3b82f6;
+}
+
+/* Tenant color utility classes */
+.tenant-bg-primary {
+  background-color: var(--tenant-primary) !important;
+}
+
+.tenant-text-primary {
+  color: var(--tenant-primary) !important;
+}
+
+.tenant-bg-secondary {
+  background-color: var(--tenant-secondary) !important;
+}
+
+.tenant-text-secondary {
+  color: var(--tenant-secondary) !important;
+}
+
+.tenant-bg-accent {
+  background-color: var(--tenant-accent) !important;
+}
+
+.tenant-text-accent {
+  color: var(--tenant-accent) !important;
+}
+
+.tenant-border-primary {
+  border-color: var(--tenant-primary) !important;
 }
 
 .dark {
