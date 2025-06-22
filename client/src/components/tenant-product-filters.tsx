@@ -28,8 +28,8 @@ export function TenantProductFilters({
   
   const handleClearFilters = () => {
     onFiltersChange({
-      categoryId: "",
-      brandId: "",
+      categoryId: "all",
+      brandId: "all",
       search: "",
       minPrice: "",
       maxPrice: "",
@@ -38,8 +38,9 @@ export function TenantProductFilters({
     });
   };
 
-  const hasActiveFilters = filters.categoryId || filters.brandId || filters.search || 
-                          filters.minPrice || filters.maxPrice;
+  const hasActiveFilters = (filters.categoryId && filters.categoryId !== "all") || 
+                          (filters.brandId && filters.brandId !== "all") || 
+                          filters.search || filters.minPrice || filters.maxPrice;
 
   return (
     <div className="space-y-6">
@@ -86,7 +87,7 @@ export function TenantProductFilters({
             <SelectValue placeholder="Todas as categorias" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas as categorias</SelectItem>
+            <SelectItem value="all">Todas as categorias</SelectItem>
             {categories.map((category) => (
               <SelectItem key={category.id} value={category.id.toString()}>
                 {category.name}
@@ -107,7 +108,7 @@ export function TenantProductFilters({
             <SelectValue placeholder="Todas as marcas" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas as marcas</SelectItem>
+            <SelectItem value="all">Todas as marcas</SelectItem>
             {brands.map((brand) => (
               <SelectItem key={brand.id} value={brand.id.toString()}>
                 {brand.name}

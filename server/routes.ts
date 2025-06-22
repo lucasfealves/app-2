@@ -817,8 +817,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const filters = {
         tenantId: tenant.id.toString(),
-        categoryId: req.query.categoryId ? Number(req.query.categoryId) : undefined,
-        brandId: req.query.brandId ? Number(req.query.brandId) : undefined,
+        categoryId: req.query.categoryId && req.query.categoryId !== "all" ? Number(req.query.categoryId) : undefined,
+        brandId: req.query.brandId && req.query.brandId !== "all" ? Number(req.query.brandId) : undefined,
         search: req.query.search as string,
         minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
         maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,

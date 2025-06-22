@@ -41,11 +41,11 @@ interface Product {
 export default function TenantStore() {
   const [location] = useLocation();
   const [filters, setFilters] = useState({
-    categoryId: undefined as number | undefined,
-    brandId: undefined as number | undefined,
+    categoryId: "all" as string,
+    brandId: "all" as string,
     search: "",
-    minPrice: undefined as number | undefined,
-    maxPrice: undefined as number | undefined,
+    minPrice: "" as string,
+    maxPrice: "" as string,
     sortBy: "name",
     sortOrder: "asc" as "asc" | "desc",
   });
@@ -59,6 +59,20 @@ export default function TenantStore() {
   const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ['/api/tenant-products', filters],
     enabled: !!tenant,
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (filters.categoryId && filters.categoryId !== "all") params.append('categoryId', filters.categoryId);
+      if (filters.brandId && filters.brandId !== "all") params.append('brandId', filters.brandId);
+      if (filters.search) params.append('search', filters.search);
+      if (filters.minPrice) params.append('minPrice', filters.minPrice);
+      if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
+      if (filters.sortBy) params.append('sortBy', filters.sortBy);
+      if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
+      
+      const response = await fetch(`/api/tenant-products?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch products');
+      return response.json();
+    },
   });
 
   // Get categories for filters
@@ -179,27 +193,14 @@ export default function TenantStore() {
                 </CardHeader>
                 <CardContent>
                   <TenantProductFilters
-                    filters={{
-                      categoryId: filters.categoryId?.toString() || "",
-                      brandId: filters.brandId?.toString() || "",
-                      search: filters.search,
-                      minPrice: filters.minPrice?.toString() || "",
-                      maxPrice: filters.maxPrice?.toString() || "",
-                      sortBy: filters.sortBy,
-                      sortOrder: filters.sortOrder,
-                    }}
+                    filters={filters}
                     categories={categories || []}
                     brands={brands || []}
                     onFiltersChange={(newFilters) => {
-                      setFilters({
-                        categoryId: newFilters.categoryId ? parseInt(newFilters.categoryId) : undefined,
-                        brandId: newFilters.brandId ? parseInt(newFilters.brandId) : undefined,
-                        search: newFilters.search || "",
-                        minPrice: newFilters.minPrice ? parseFloat(newFilters.minPrice) : undefined,
-                        maxPrice: newFilters.maxPrice ? parseFloat(newFilters.maxPrice) : undefined,
-                        sortBy: newFilters.sortBy || "name",
-                        sortOrder: newFilters.sortOrder || "asc",
-                      });
+                      setFilters(prev => ({
+                        ...prev,
+                        ...newFilters
+                      }));
                     }}
                   />
                 </CardContent>
