@@ -53,17 +53,29 @@ export default function TenantStore() {
     sortOrder: "asc" as "asc" | "desc",
   });
 
-  // Get current tenant
+  // Extract tenant slug from URL
+  const tenantSlug = location.split('/')[2]; // /tenant/demo -> demo
+
+  // Get tenant by slug
   const { data: tenant, isLoading: tenantLoading } = useQuery<Tenant>({
-    queryKey: ['/api/current-tenant'],
+    queryKey: ['/api/tenant-by-slug', tenantSlug],
+    enabled: !!tenantSlug,
+    queryFn: async () => {
+      const response = await fetch(`/api/tenant-by-slug/${tenantSlug}`);
+      if (!response.ok) throw new Error('Tenant not found');
+      return response.json();
+    },
   });
 
   // Get tenant-specific products
   const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
-    queryKey: ['/api/tenant-products', filters],
+    queryKey: ['/api/products', tenant?.id, filters],
     enabled: !!tenant,
     queryFn: async () => {
+      if (!tenant) return [];
+      
       const params = new URLSearchParams();
+      params.append('tenantId', tenant.id.toString());
       if (filters.categoryId && filters.categoryId !== "all") params.append('categoryId', filters.categoryId);
       if (filters.brandId && filters.brandId !== "all") params.append('brandId', filters.brandId);
       if (filters.search) params.append('search', filters.search);
@@ -72,7 +84,11 @@ export default function TenantStore() {
       if (filters.sortBy) params.append('sortBy', filters.sortBy);
       if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
       
-      const response = await fetch(`/api/tenant-products?${params}`);
+      const response = await fetch(`/api/products?${params}`, {
+        headers: {
+          'X-Tenant-Id': tenant.id.toString()
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch products');
       return response.json();
     },

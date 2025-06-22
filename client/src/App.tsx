@@ -29,6 +29,9 @@ function Router() {
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
+      {/* Public tenant store routes */}
+      <Route path="/tenant/:slug" component={TenantStore} />
+      <Route path="/store/:slug" component={TenantStore} />
       
       {!isAuthenticated ? (
         <Route path="/" component={Landing} />
@@ -42,8 +45,6 @@ function Router() {
           <Route path="/orders" component={Orders} />
           <Route path="/admin" component={Admin} />
           <Route path="/tenant-admin" component={TenantAdmin} />
-          <Route path="/store/:slug" component={TenantStore} />
-          <Route path="/tenant/:slug" component={TenantStore} />
         </>
       )}
       <Route component={NotFound} />

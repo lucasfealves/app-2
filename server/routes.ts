@@ -202,6 +202,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get tenant by slug (public route for tenant stores)
+  app.get('/api/tenant-by-slug/:slug', async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const tenant = await storage.getTenantBySlug(slug);
+      if (!tenant) {
+        return res.status(404).json({ message: "Tenant not found" });
+      }
+      res.json(tenant);
+    } catch (error) {
+      console.error("Error fetching tenant by slug:", error);
+      res.status(500).json({ message: "Failed to fetch tenant" });
+    }
+  });
+
   app.put('/api/tenants/:id', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user;
