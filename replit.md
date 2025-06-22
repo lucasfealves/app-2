@@ -149,6 +149,7 @@ This is a full-stack e-commerce application built with React, Express.js, and Po
 ## Changelog
 - June 21, 2025. Initial setup
 - June 21, 2025. Added multi-tenant support with complete tenant management system
+- June 22, 2025. Migrated from Replit Agent to Replit environment with database setup and tenant theme customization
 
 ## User Preferences
 

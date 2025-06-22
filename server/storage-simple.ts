@@ -72,6 +72,7 @@ export class DatabaseStorage {
       SELECT id, name, slug, domain, description, logo_url as "logoUrl", 
              contact_email as "contactEmail", contact_phone as "contactPhone", 
              address, settings, is_active as "isActive", 
+             primary_color as "primaryColor", secondary_color as "secondaryColor", accent_color as "accentColor",
              subscription_plan as "subscriptionPlan", subscription_status as "subscriptionStatus",
              created_at as "createdAt", updated_at as "updatedAt"
       FROM tenants 
@@ -85,6 +86,7 @@ export class DatabaseStorage {
       SELECT id, name, slug, domain, description, logo_url as "logoUrl", 
              contact_email as "contactEmail", contact_phone as "contactPhone", 
              address, settings, is_active as "isActive", 
+             primary_color as "primaryColor", secondary_color as "secondaryColor", accent_color as "accentColor",
              subscription_plan as "subscriptionPlan", subscription_status as "subscriptionStatus",
              created_at as "createdAt", updated_at as "updatedAt"
       FROM tenants 

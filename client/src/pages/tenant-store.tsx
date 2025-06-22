@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,9 @@ interface Tenant {
   address: string | null;
   isActive: boolean;
   settings: any;
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
 }
 
 interface Product {
@@ -85,6 +88,36 @@ export default function TenantStore() {
     queryKey: ['/api/brands'],
   });
 
+  // Apply tenant theme colors dynamically
+  useEffect(() => {
+    if (tenant) {
+      const root = document.documentElement;
+      
+      // Apply primary color
+      if (tenant.primaryColor) {
+        root.style.setProperty('--primary', tenant.primaryColor);
+      }
+      
+      // Apply secondary color  
+      if (tenant.secondaryColor) {
+        root.style.setProperty('--secondary', tenant.secondaryColor);
+      }
+      
+      // Apply accent color
+      if (tenant.accentColor) {
+        root.style.setProperty('--accent', tenant.accentColor);
+      }
+    }
+    
+    // Cleanup function to reset colors when component unmounts
+    return () => {
+      const root = document.documentElement;
+      root.style.removeProperty('--primary');
+      root.style.removeProperty('--secondary');  
+      root.style.removeProperty('--accent');
+    };
+  }, [tenant]);
+
   if (tenantLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -119,15 +152,35 @@ export default function TenantStore() {
                 <img
                   src={tenant.logoUrl}
                   alt={tenant.name}
-                  className="w-24 h-24 lg:w-28 lg:h-28 rounded-2xl object-cover shadow-lg ring-4 ring-white"
+                  className="w-24 h-24 lg:w-28 lg:h-28 rounded-2xl object-cover shadow-lg ring-4"
+                  style={{
+                    borderColor: tenant.primaryColor || '#3b82f6'
+                  }}
                 />
               ) : (
-                <div className="w-24 h-24 lg:w-28 lg:h-28 bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl flex items-center justify-center shadow-lg ring-4 ring-white">
-                  <Store className="w-12 h-12 text-slate-400" />
+                <div 
+                  className="w-24 h-24 lg:w-28 lg:h-28 rounded-2xl flex items-center justify-center shadow-lg ring-4 ring-white"
+                  style={{
+                    background: tenant.primaryColor 
+                      ? `linear-gradient(135deg, ${tenant.primaryColor}15, ${tenant.primaryColor}30)`
+                      : 'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
+                    borderColor: tenant.primaryColor || '#3b82f6'
+                  }}
+                >
+                  <Store 
+                    className="w-12 h-12" 
+                    style={{ color: tenant.primaryColor || '#64748b' }}
+                  />
                 </div>
               )}
               <div className="absolute -bottom-2 -right-2">
-                <Badge variant={tenant.isActive ? "default" : "destructive"} className="shadow-sm">
+                <Badge 
+                  variant={tenant.isActive ? "default" : "destructive"} 
+                  className="shadow-sm"
+                  style={{
+                    backgroundColor: tenant.isActive ? (tenant.primaryColor || '#3b82f6') : undefined
+                  }}
+                >
                   {tenant.isActive ? "Ativa" : "Inativa"}
                 </Badge>
               </div>
