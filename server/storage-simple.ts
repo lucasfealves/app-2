@@ -39,50 +39,29 @@ import { eq, and, desc, like, ilike, gte, lte, count, sql } from "drizzle-orm";
 export class DatabaseStorage {
   // Tenant operations
   async getTenants(filters?: { limit?: number; offset?: number }): Promise<Tenant[]> {
-    const queryString = `
-      SELECT id, name, slug, domain, description, logo_url as "logoUrl", 
-             contact_email as "contactEmail", contact_phone as "contactPhone", 
-             address, settings, is_active as "isActive", 
-             subscription_plan as "subscriptionPlan", subscription_status as "subscriptionStatus",
-             created_at as "createdAt", updated_at as "updatedAt"
-      FROM tenants 
-      ORDER BY created_at DESC
-      ${filters?.limit ? `LIMIT ${filters.limit}` : ''}
-      ${filters?.offset ? `OFFSET ${filters.offset}` : ''}
-    `;
-    
-    const result = await db.execute(sql.raw(queryString));
-    return result.rows as Tenant[];
+    let query = db.select().from(tenants);
+
+    query = query.orderBy(desc(tenants.createdAt));
+
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
+
+    if (filters?.offset) {
+      query = query.offset(filters.offset);
+    }
+
+    return await query;
   }
 
   async getTenant(id: number): Promise<Tenant | undefined> {
-    const queryString = `
-      SELECT id, name, slug, domain, description, logo_url as "logoUrl", 
-             contact_email as "contactEmail", contact_phone as "contactPhone", 
-             address, settings, is_active as "isActive", 
-             subscription_plan as "subscriptionPlan", subscription_status as "subscriptionStatus",
-             created_at as "createdAt", updated_at as "updatedAt"
-      FROM tenants 
-      WHERE id = $1
-    `;
-    
-    const result = await db.execute(sql.raw(queryString, [id]));
-    return result.rows[0] as Tenant | undefined;
+    const [tenant] = await db.select().from(tenants).where(eq(tenants.id, id));
+    return tenant;
   }
 
   async getTenantBySlug(slug: string): Promise<Tenant | undefined> {
-    const queryString = `
-      SELECT id, name, slug, domain, description, logo_url as "logoUrl", 
-             contact_email as "contactEmail", contact_phone as "contactPhone", 
-             address, settings, is_active as "isActive", 
-             subscription_plan as "subscriptionPlan", subscription_status as "subscriptionStatus",
-             created_at as "createdAt", updated_at as "updatedAt"
-      FROM tenants 
-      WHERE slug = $1
-    `;
-    
-    const result = await db.execute(sql.raw(queryString, [slug]));
-    return result.rows[0] as Tenant | undefined;
+    const [tenant] = await db.select().from(tenants).where(eq(tenants.slug, slug));
+    return tenant;
   }
 
   async createTenant(tenant: InsertTenant): Promise<Tenant> {
