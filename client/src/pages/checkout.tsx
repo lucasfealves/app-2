@@ -61,6 +61,7 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState("pix");
   const [shippingMethod, setShippingMethod] = useState("standard");
   const [pixCode, setPixCode] = useState("");
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [orderStep, setOrderStep] = useState(1); // 1: shipping, 2: payment, 3: confirmation
 
   useEffect(() => {
