@@ -89,7 +89,6 @@ export const products = pgTable("products", {
   stock: integer("stock").default(0),
   categoryId: integer("category_id").references(() => categories.id),
   brandId: integer("brand_id").references(() => brands.id),
-  tenantId: text("tenant_id").references(() => tenants.id).notNull(),
   imageUrl: text("image_url"),
   images: text("images").array(),
   specifications: jsonb("specifications"),
@@ -194,10 +193,6 @@ export const brandsRelations = relations(brands, ({ one, many }) => ({
 }));
 
 export const productsRelations = relations(products, ({ one, many }) => ({
-  tenant: one(tenants, {
-    fields: [products.tenantId],
-    references: [tenants.id],
-  }),
   category: one(categories, {
     fields: [products.categoryId],
     references: [categories.id],

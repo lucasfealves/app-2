@@ -194,9 +194,7 @@ export class DatabaseStorage {
   }): Promise<Product[]> {
     const conditions = [eq(products.isActive, true)];
 
-    if (filters?.tenantId) {
-      conditions.push(eq(products.tenantId, filters.tenantId));
-    }
+
     if (filters?.categoryId) {
       conditions.push(eq(products.categoryId, filters.categoryId));
     }
@@ -243,22 +241,12 @@ export class DatabaseStorage {
   }
 
   async getProduct(id: number, tenantId?: string): Promise<Product | undefined> {
-    const conditions = [eq(products.id, id)];
-    if (tenantId) {
-      conditions.push(eq(products.tenantId, tenantId));
-    }
-    
-    const [product] = await db.select().from(products).where(and(...conditions));
+    const [product] = await db.select().from(products).where(eq(products.id, id));
     return product;
   }
 
   async getProductBySlug(slug: string, tenantId?: string): Promise<Product | undefined> {
-    const conditions = [eq(products.slug, slug)];
-    if (tenantId) {
-      conditions.push(eq(products.tenantId, tenantId));
-    }
-    
-    const [product] = await db.select().from(products).where(and(...conditions));
+    const [product] = await db.select().from(products).where(eq(products.slug, slug));
     return product;
   }
 
