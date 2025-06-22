@@ -28,6 +28,7 @@ import PaymentsOverview from "@/components/admin/payments-overview";
 import CategoriesBrandsTable from "@/components/admin/categories-brands-table";
 import AnalyticsDashboard from "@/components/admin/analytics-dashboard";
 import PaymentSettings from "@/components/admin/payment-settings";
+import SiteSettings from "@/components/admin/site-settings";
 
 export default function Admin() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -119,7 +120,7 @@ export default function Admin() {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-8 bg-white rounded-xl p-1 material-shadow-1">
+          <TabsList className="grid w-full grid-cols-9 bg-white rounded-xl p-1 material-shadow-1">
             <TabsTrigger
               value="overview"
               className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
@@ -174,7 +175,14 @@ export default function Admin() {
               className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
             >
               <Shield className="h-4 w-4 mr-2" />
-              Configurações
+              Config. Pag.
+            </TabsTrigger>
+            <TabsTrigger
+              value="site-settings"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
+              <Package className="h-4 w-4 mr-2" />
+              Site
             </TabsTrigger>
           </TabsList>
 
@@ -215,6 +223,10 @@ export default function Admin() {
 
           <TabsContent value="settings" className="space-y-6">
             <PaymentSettings />
+          </TabsContent>
+          
+          <TabsContent value="site-settings" className="space-y-6">
+            <SiteSettings />
           </TabsContent>
         </Tabs>
       </div>

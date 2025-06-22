@@ -1,12 +1,14 @@
 import { useAuth } from "@/hooks/useAuth";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingCart, TrendingUp, Package, Heart } from "lucide-react";
+import { ShoppingCart, TrendingUp, Package, Heart, Truck, Shield } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Home() {
   const { user } = useAuth();
+  const { data: siteSettings } = useSiteSettings();
 
   return (
     <div className="min-h-screen bg-background">
@@ -15,14 +17,34 @@ export default function Home() {
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Bem-vindo de volta, {user?.firstName || 'Cliente'}!
+          <h1 
+            className="text-4xl font-bold mb-4"
+            style={{ color: siteSettings?.primaryColor || '#1f2937' }}
+          >
+            {siteSettings?.heroTitle || (user ? `Bem-vindo de volta, ${user.firstName || 'Cliente'}!` : 'Bem-vindo à nossa loja')}
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Descubra os melhores produtos e ofertas especiais para você
+            {siteSettings?.heroDescription || 'Descubra os melhores produtos e ofertas especiais para você'}
           </p>
           <Link href="/catalog">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button 
+              size="lg" 
+              className="text-white"
+              style={{ 
+                backgroundColor: siteSettings?.primaryColor || '#2563eb',
+                borderColor: siteSettings?.primaryColor || '#2563eb'
+              }}
+              onMouseEnter={(e) => {
+                if (siteSettings?.secondaryColor) {
+                  e.currentTarget.style.backgroundColor = siteSettings.secondaryColor;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (siteSettings?.primaryColor) {
+                  e.currentTarget.style.backgroundColor = siteSettings.primaryColor;
+                }
+              }}
+            >
               <ShoppingCart className="mr-2 h-5 w-5" />
               Explorar Catálogo
             </Button>
@@ -124,8 +146,40 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Features Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          {(siteSettings?.features || ['Entrega rápida', 'Produtos de qualidade', 'Suporte 24/7']).slice(0, 3).map((feature, index) => {
+            const icons = [Truck, Shield, Heart];
+            const Icon = icons[index];
+            const colors = [
+              { bg: 'bg-blue-100', text: 'text-blue-600' },
+              { bg: 'bg-green-100', text: 'text-green-600' },
+              { bg: 'bg-purple-100', text: 'text-purple-600' }
+            ];
+            
+            return (
+              <div key={index} className="text-center p-6 bg-white rounded-lg material-shadow-1">
+                <div className={`w-16 h-16 ${colors[index].bg} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                  <Icon className={`h-8 w-8 ${colors[index].text}`} />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">{feature}</h3>
+                <p className="text-gray-600">
+                  {index === 0 && 'Receba seus produtos rapidamente'}
+                  {index === 1 && 'Produtos selecionados com qualidade garantida'}
+                  {index === 2 && 'Suporte sempre disponível para você'}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
         {/* Special Offers */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-white text-center">
+        <div 
+          className="rounded-lg p-8 text-white text-center"
+          style={{ 
+            background: `linear-gradient(to right, ${siteSettings?.primaryColor || '#2563eb'}, ${siteSettings?.secondaryColor || '#7c3aed'})` 
+          }}
+        >
           <h2 className="text-3xl font-bold mb-4">Ofertas Especiais</h2>
           <p className="text-xl mb-6">
             Até 50% de desconto em produtos selecionados

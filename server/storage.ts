@@ -11,6 +11,7 @@ import {
   payments,
   paymentSettings,
   favorites,
+  siteSettings,
   type User,
   type UpsertUser,
   type Category,
@@ -35,6 +36,8 @@ import {
   type InsertPaymentSettings,
   type Favorite,
   type InsertFavorite,
+  type SiteSettings,
+  type InsertSiteSettings,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, like, ilike, gte, lte, inArray } from "drizzle-orm";
@@ -739,6 +742,50 @@ export class DatabaseStorage implements IStorage {
       ))
       .limit(1);
     return !!favorite;
+  }
+
+  // Site settings operations
+  async getSiteSettings(): Promise<SiteSettings> {
+    const [settings] = await db.select().from(siteSettings).limit(1);
+    
+    if (!settings) {
+      // Create default settings if none exist
+      const [defaultSettings] = await db
+        .insert(siteSettings)
+        .values({})
+        .returning();
+      return defaultSettings;
+    }
+    
+    return settings;
+  }
+
+  async updateSiteSettings(data: InsertSiteSettings): Promise<SiteSettings> {
+    // First, check if any settings exist
+    const [existingSettings] = await db.select().from(siteSettings).limit(1);
+    
+    if (!existingSettings) {
+      // Insert new settings
+      const [newSettings] = await db
+        .insert(siteSettings)
+        .values({
+          ...data,
+          updatedAt: new Date()
+        })
+        .returning();
+      return newSettings;
+    } else {
+      // Update existing settings
+      const [updatedSettings] = await db
+        .update(siteSettings)
+        .set({
+          ...data,
+          updatedAt: new Date()
+        })
+        .where(eq(siteSettings.id, existingSettings.id))
+        .returning();
+      return updatedSettings;
+    }
   }
 }
 

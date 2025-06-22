@@ -151,6 +151,17 @@ export const favorites = pgTable("favorites", {
   index("idx_favorites_user_product").on(table.userId, table.productId),
 ]);
 
+export const siteSettings = pgTable("site_settings", {
+  id: serial("id").primaryKey(),
+  siteName: varchar("site_name", { length: 255 }).default("E-Commerce"),
+  primaryColor: varchar("primary_color", { length: 7 }).default("#2563eb"),
+  secondaryColor: varchar("secondary_color", { length: 7 }).default("#7c3aed"),
+  heroTitle: text("hero_title").default("Bem-vindo à nossa loja"),
+  heroDescription: text("hero_description").default("Encontre os melhores produtos com os melhores preços"),
+  features: text("features").array().default(["Entrega rápida", "Produtos de qualidade", "Suporte 24/7"]),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   carts: many(carts),
@@ -361,3 +372,12 @@ export type PaymentSettings = typeof paymentSettings.$inferSelect;
 export type InsertPaymentSettings = z.infer<typeof insertPaymentSettingsSchema>;
 export type Favorite = typeof favorites.$inferSelect;
 export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
+
+// Site settings schemas
+export const insertSiteSettingsSchema = createInsertSchema(siteSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type SiteSettings = typeof siteSettings.$inferSelect;
+export type InsertSiteSettings = z.infer<typeof insertSiteSettingsSchema>;

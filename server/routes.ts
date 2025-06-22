@@ -701,6 +701,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Site settings routes
+  app.get('/api/admin/site-settings', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const settings = await storage.getSiteSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching site settings:", error);
+      res.status(500).json({ message: "Failed to fetch site settings" });
+    }
+  });
+
+  app.put('/api/admin/site-settings', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { siteName, primaryColor, secondaryColor, heroTitle, heroDescription, features } = req.body;
+      
+      const settings = await storage.updateSiteSettings({
+        siteName,
+        primaryColor,
+        secondaryColor,
+        heroTitle,
+        heroDescription,
+        features
+      });
+
+      res.json(settings);
+    } catch (error) {
+      console.error("Error updating site settings:", error);
+      res.status(500).json({ message: "Failed to update site settings" });
+    }
+  });
+
+  // Public site settings endpoint
+  app.get('/api/site-settings', async (req, res) => {
+    try {
+      const settings = await storage.getSiteSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching public site settings:", error);
+      res.status(500).json({ message: "Failed to fetch site settings" });
+    }
+  });
+
   // Admin recent orders
   app.get('/api/admin/orders/recent', isAuthenticated, async (req: any, res) => {
     try {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,6 +19,7 @@ export default function Navbar() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const { data: siteSettings } = useSiteSettings();
 
   const { data: cart } = useQuery({
     queryKey: ['/api/cart'],
@@ -41,8 +43,13 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/">
             <div className="flex items-center space-x-2 cursor-pointer">
-              <ShoppingCart className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">E-Commerce</span>
+              <ShoppingCart 
+                className="h-8 w-8" 
+                style={{ color: siteSettings?.primaryColor || '#2563eb' }}
+              />
+              <span className="text-xl font-bold text-gray-900">
+                {siteSettings?.siteName || 'E-Commerce'}
+              </span>
             </div>
           </Link>
 
