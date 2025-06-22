@@ -5,6 +5,25 @@ import { setupAuth, isAuthenticated, hashPassword, comparePassword, generateToke
 import { insertProductSchema, insertCategorySchema, insertBrandSchema, registerSchema, loginSchema } from "@shared/schema";
 import { z } from "zod";
 
+// CRC16 calculation for PIX codes
+function calculateCRC16(payload: string): number {
+  const polynomial = 0x1021;
+  let crc = 0xFFFF;
+  
+  for (let i = 0; i < payload.length; i++) {
+    crc ^= (payload.charCodeAt(i) << 8);
+    for (let j = 0; j < 8; j++) {
+      if (crc & 0x8000) {
+        crc = (crc << 1) ^ polynomial;
+      } else {
+        crc = crc << 1;
+      }
+    }
+  }
+  
+  return crc & 0xFFFF;
+}
+
 // PIX code generation function
 function generatePixCode(params: {
   pixKey: string;
@@ -15,44 +34,29 @@ function generatePixCode(params: {
 }): string {
   const { pixKey, merchantName, merchantCity, amount, orderId } = params;
   
-  // Simplified PIX code generation (EMV format)
-  // In production, use a proper PIX library like pix-utils
+  // Build PIX payload following EMV standard
+  const merchantAccountInfo = `0014BR.GOV.BCB.PIX01${pixKey.length.toString().padStart(2, '0')}${pixKey}`;
+  const amountStr = amount.toFixed(2);
+  const additionalData = `05${orderId.length.toString().padStart(2, '0')}${orderId}`;
+  
   const payload = [
     "000201", // Payload Format Indicator
     "010212", // Point of Initiation Method
-    `0014BR.GOV.BCB.PIX01${pixKey.length.toString().padStart(2, '0')}${pixKey}`, // Merchant Account Information
+    `26${merchantAccountInfo.length.toString().padStart(2, '0')}${merchantAccountInfo}`, // Merchant Account Information
     "520400000", // Merchant Category Code
     "5303986", // Transaction Currency (BRL)
-    `54${amount.toFixed(2).length.toString().padStart(2, '0')}${amount.toFixed(2)}`, // Transaction Amount
+    `54${amountStr.length.toString().padStart(2, '0')}${amountStr}`, // Transaction Amount
     "5802BR", // Country Code
     `59${merchantName.length.toString().padStart(2, '0')}${merchantName}`, // Merchant Name
     `60${merchantCity.length.toString().padStart(2, '0')}${merchantCity}`, // Merchant City
-    `62${(orderId.length + 4).toString().padStart(2, '0')}05${orderId.length.toString().padStart(2, '0')}${orderId}`, // Additional Data
+    `62${additionalData.length.toString().padStart(2, '0')}${additionalData}`, // Additional Data
     "6304" // CRC placeholder
   ].join("");
   
-  // Calculate CRC16 (simplified - in production use proper CRC16-CCITT)
+  // Calculate CRC16 checksum
   const crc = calculateCRC16(payload).toString(16).toUpperCase().padStart(4, '0');
   
   return payload + crc;
-}
-
-function calculateCRC16(data: string): number {
-  // Simplified CRC16 calculation for PIX
-  // In production, use proper CRC16-CCITT implementation
-  let crc = 0xFFFF;
-  for (let i = 0; i < data.length; i++) {
-    crc ^= data.charCodeAt(i) << 8;
-    for (let j = 0; j < 8; j++) {
-      if (crc & 0x8000) {
-        crc = (crc << 1) ^ 0x1021;
-      } else {
-        crc <<= 1;
-      }
-      crc &= 0xFFFF;
-    }
-  }
-  return crc;
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -529,8 +533,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate PIX code for PIX payments
       let pixCode = null;
-      if (paymentMethod === 'pix') {
-        pixCode = `00020126360014BR.GOV.BCB.PIX0114+55119999999990204000053039865802BR5925LOJA EXEMPLO6009SAO PAULO61080540900062070503***6304${Math.random().toString(36).substr(2, 9)}`;
+      if (paymentMethod === 'pix' && pixSettings?.enabled) {
+        pixCode = generatePixCode({
+          pixKey: pixSettings.pixKey,
+          merchantName: pixSettings.merchantName,
+          merchantCity: pixSettings.merchantCity,
+          amount: total,
+          orderId: orderNumber
+        });
       }
 
       // Create payment record
