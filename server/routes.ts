@@ -177,7 +177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const tenantData = insertTenantSchema.partial().parse(req.body);
       
-      const tenant = await storage.updateTenant(id, tenantData);
+      const tenant = await storage.updateTenant(parseInt(id), tenantData);
       if (!tenant) {
         return res.status(404).json({ message: "Tenant not found" });
       }

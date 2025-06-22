@@ -3,24 +3,29 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Eye, Edit2, Palette, Globe, Calendar, Store } from "lucide-react";
+import { Eye, Edit2, Palette, Globe, Calendar, Store, Plus, X } from "lucide-react";
 
 interface Tenant {
-  id: string;
+  id: number;
   name: string;
   slug: string;
   description?: string;
-  logo?: string;
-  primaryColor: string;
-  secondaryColor: string;
+  logoUrl?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  address?: string;
   domain?: string;
+  settings?: any;
   isActive: boolean;
+  subscriptionPlan?: string;
+  subscriptionStatus?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -59,8 +64,9 @@ export default function TenantAdmin() {
         name: "",
         slug: "",
         description: "",
-        primaryColor: "#1f2937",
-        secondaryColor: "#f3f4f6",
+        contactEmail: "",
+        contactPhone: "",
+        address: "",
         domain: "",
       });
       toast({
@@ -72,6 +78,31 @@ export default function TenantAdmin() {
       toast({
         title: "Erro",
         description: error.message || "Erro ao criar tenant",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateTenantMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<Tenant> }) => {
+      return apiRequest(`/api/tenants/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tenants'] });
+      setIsEditDialogOpen(false);
+      setEditingTenant({});
+      toast({
+        title: "Sucesso",
+        description: "Tenant atualizado com sucesso!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar tenant. Tente novamente.",
         variant: "destructive",
       });
     },
@@ -111,6 +142,31 @@ export default function TenantAdmin() {
   const handleViewDetails = (tenant: Tenant) => {
     setSelectedTenant(tenant);
     setIsDetailsDialogOpen(true);
+  };
+
+  const handleEditTenant = (tenant: Tenant) => {
+    setEditingTenant({
+      name: tenant.name,
+      slug: tenant.slug,
+      description: tenant.description || "",
+      contactEmail: tenant.contactEmail || "",
+      contactPhone: tenant.contactPhone || "",
+      address: tenant.address || "",
+      domain: tenant.domain || "",
+      isActive: tenant.isActive,
+    });
+    setSelectedTenant(tenant);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateTenant = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedTenant) {
+      updateTenantMutation.mutate({
+        id: selectedTenant.id,
+        data: editingTenant
+      });
+    }
   };
 
   if (isLoading) {
@@ -231,10 +287,9 @@ export default function TenantAdmin() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">{tenant.name}</CardTitle>
-                <div 
-                  className="w-4 h-4 rounded-full border" 
-                  style={{ backgroundColor: tenant.primaryColor }}
-                />
+                <Badge variant={tenant.isActive ? "default" : "secondary"}>
+                  {tenant.isActive ? 'Ativo' : 'Inativo'}
+                </Badge>
               </div>
               <CardDescription>{tenant.slug}</CardDescription>
             </CardHeader>
@@ -245,16 +300,8 @@ export default function TenantAdmin() {
                 )}
                 
                 <div className="flex items-center gap-2">
-                  <Palette className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-xs">Paleta de cores</span>
-                  <div 
-                    className="w-3 h-3 rounded border"
-                    style={{ backgroundColor: tenant.primaryColor }}
-                  />
-                  <div 
-                    className="w-3 h-3 rounded border"
-                    style={{ backgroundColor: tenant.secondaryColor }}
-                  />
+                  <Store className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-xs">Loja Multi-tenant</span>
                 </div>
 
                 {tenant.domain && (
@@ -288,6 +335,15 @@ export default function TenantAdmin() {
                     >
                       <Eye className="w-3 h-3" />
                       Detalhes
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleEditTenant(tenant)}
+                      className="flex items-center gap-1"
+                    >
+                      <Edit2 className="w-3 h-3" />
+                      Editar
                     </Button>
                   </div>
                 </div>
@@ -438,7 +494,14 @@ export default function TenantAdmin() {
 
               {/* Ações */}
               <div className="flex gap-2 pt-4">
-                <Button variant="outline" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => {
+                    setIsDetailsDialogOpen(false);
+                    handleEditTenant(selectedTenant!);
+                  }}
+                >
                   <Edit2 className="w-4 h-4 mr-2" />
                   Editar Tenant
                 </Button>
@@ -451,6 +514,120 @@ export default function TenantAdmin() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Edição do Tenant */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit2 className="w-5 h-5" />
+              Editar Tenant
+            </DialogTitle>
+          </DialogHeader>
+          
+          <form onSubmit={handleUpdateTenant} className="space-y-4">
+            <div>
+              <Label htmlFor="editName">Nome</Label>
+              <Input
+                id="editName"
+                value={editingTenant.name || ""}
+                onChange={(e) => setEditingTenant(prev => ({ ...prev, name: e.target.value }))}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="editSlug">Slug</Label>
+              <Input
+                id="editSlug"
+                value={editingTenant.slug || ""}
+                onChange={(e) => setEditingTenant(prev => ({ ...prev, slug: e.target.value }))}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="editDescription">Descrição</Label>
+              <Textarea
+                id="editDescription"
+                placeholder="Descrição do tenant..."
+                value={editingTenant.description || ""}
+                onChange={(e) => setEditingTenant(prev => ({ ...prev, description: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="editContactEmail">Email de Contato</Label>
+              <Input
+                id="editContactEmail"
+                type="email"
+                placeholder="contato@loja.com"
+                value={editingTenant.contactEmail || ""}
+                onChange={(e) => setEditingTenant(prev => ({ ...prev, contactEmail: e.target.value }))}
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Label htmlFor="editContactPhone">Telefone</Label>
+                <Input
+                  id="editContactPhone"
+                  placeholder="(11) 99999-9999"
+                  value={editingTenant.contactPhone || ""}
+                  onChange={(e) => setEditingTenant(prev => ({ ...prev, contactPhone: e.target.value }))}
+                />
+              </div>
+              <div className="flex-1">
+                <Label htmlFor="editDomain">Domínio</Label>
+                <Input
+                  id="editDomain"
+                  placeholder="minha-loja.com"
+                  value={editingTenant.domain || ""}
+                  onChange={(e) => setEditingTenant(prev => ({ ...prev, domain: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="editAddress">Endereço</Label>
+              <Textarea
+                id="editAddress"
+                placeholder="Endereço completo da loja..."
+                value={editingTenant.address || ""}
+                onChange={(e) => setEditingTenant(prev => ({ ...prev, address: e.target.value }))}
+              />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="editIsActive"
+                checked={editingTenant.isActive || false}
+                onChange={(e) => setEditingTenant(prev => ({ ...prev, isActive: e.target.checked }))}
+                className="h-4 w-4"
+              />
+              <Label htmlFor="editIsActive">Tenant ativo</Label>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button 
+                type="submit" 
+                disabled={updateTenantMutation.isPending}
+                className="flex-1"
+              >
+                {updateTenantMutation.isPending ? "Atualizando..." : "Atualizar Tenant"}
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={() => setIsEditDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
