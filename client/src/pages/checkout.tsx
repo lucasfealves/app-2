@@ -63,6 +63,9 @@ export default function Checkout() {
   const [pixCode, setPixCode] = useState("");
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [orderStep, setOrderStep] = useState(1); // 1: shipping, 2: payment, 3: confirmation
+  const [pixTimer, setPixTimer] = useState(0); // Timer in seconds
+  const [pixExpired, setPixExpired] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -76,6 +79,43 @@ export default function Checkout() {
       }, 500);
     }
   }, [isAuthenticated, authLoading, toast]);
+
+  // PIX Timer Effect
+  useEffect(() => {
+    if (pixCode && !pixExpired) {
+      setPixTimer(420); // 7 minutes = 420 seconds
+      
+      timerRef.current = setInterval(() => {
+        setPixTimer((prev) => {
+          if (prev <= 1) {
+            setPixExpired(true);
+            setPixCode("");
+            setQrCodeUrl("");
+            toast({
+              title: "PIX Expirado",
+              description: "O tempo para pagamento expirou. Faça um novo pedido.",
+              variant: "destructive",
+            });
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [pixCode, pixExpired, toast]);
+
+  // Format timer display
+  const formatTimer = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
 
   const shippingForm = useForm<z.infer<typeof shippingSchema>>({
     resolver: zodResolver(shippingSchema),
@@ -345,7 +385,15 @@ export default function Checkout() {
                 </div>
                 
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">Pedido Criado!</h1>
-                <p className="text-gray-600 mb-6">Finalize o pagamento escaneando o QR Code PIX</p>
+                <p className="text-gray-600 mb-4">Finalize o pagamento escaneando o QR Code PIX</p>
+                
+                {/* Timer Display */}
+                <div className={`flex items-center justify-center space-x-2 mb-6 p-3 rounded-lg ${
+                  pixTimer <= 60 ? 'bg-red-50 text-red-700' : 'bg-yellow-50 text-yellow-700'
+                }`}>
+                  <Clock className="h-5 w-5" />
+                  <span className="font-semibold">Tempo restante: {formatTimer(pixTimer)}</span>
+                </div>
                 
                 <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-6 mb-6">
                   {/* QR Code Visual */}
@@ -402,6 +450,21 @@ export default function Checkout() {
                     className="w-full bg-blue-600 hover:bg-blue-700"
                   >
                     Ver Meus Pedidos
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setPixCode("");
+                      setQrCodeUrl("");
+                      setPixExpired(false);
+                      setPixTimer(0);
+                      if (timerRef.current) {
+                        clearInterval(timerRef.current);
+                      }
+                    }}
+                    variant="outline" 
+                    className="w-full"
+                  >
+                    Cancelar Pagamento
                   </Button>
                 </div>
               </CardContent>
