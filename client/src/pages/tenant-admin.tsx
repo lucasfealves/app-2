@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Eye, Edit2, Palette, Globe, Calendar } from "lucide-react";
+import { Eye, Edit2, Palette, Globe, Calendar, Store } from "lucide-react";
 
 interface Tenant {
   id: string;

@@ -298,12 +298,7 @@ export class DatabaseStorage {
 
   // Cart operations
   async getUserCart(userId: string, tenantId?: string): Promise<Cart | undefined> {
-    const conditions = [eq(carts.userId, userId)];
-    if (tenantId) {
-      conditions.push(eq(carts.tenantId, tenantId));
-    }
-    
-    const [cart] = await db.select().from(carts).where(and(...conditions));
+    const [cart] = await db.select().from(carts).where(eq(carts.userId, userId));
     return cart;
   }
 
