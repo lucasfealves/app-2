@@ -189,12 +189,7 @@ export default function FavoritesPage() {
             <h1 className="text-3xl font-bold">Meus Favoritos</h1>
           </div>
         </div>
-        <Link href="/cart">
-          <Button>
-            <ShoppingCart className="h-4 w-4 mr-2" />
-            Ver Carrinho
-          </Button>
-        </Link>
+
       </div>
 
       {favorites.length === 0 ? (

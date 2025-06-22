@@ -53,17 +53,6 @@ export default function Navbar() {
                 Catálogo
               </Button>
             </Link>
-            <Link href="/cart">
-              <Button variant="ghost" className="text-gray-700 hover:text-blue-600 relative">
-                <ShoppingCart className="h-5 w-5 mr-1" />
-                Carrinho
-                {cartItemCount > 0 && (
-                  <Badge className="absolute -top-2 -right-2 bg-blue-600 text-white">
-                    {cartItemCount}
-                  </Badge>
-                )}
-              </Button>
-            </Link>
           </div>
 
           {/* Search Bar */}
@@ -82,6 +71,18 @@ export default function Navbar() {
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
+            {/* Cart Button */}
+            <Link href="/cart">
+              <Button variant="ghost" size="icon" className="relative">
+                <ShoppingCart className="h-5 w-5" />
+                {cartItemCount > 0 && (
+                  <Badge className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs px-1.5 py-0.5 min-w-[1.25rem] h-5 flex items-center justify-center">
+                    {cartItemCount}
+                  </Badge>
+                )}
+              </Button>
+            </Link>
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center space-x-2">
