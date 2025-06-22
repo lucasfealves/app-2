@@ -126,12 +126,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           />
         </div>
 
-        {/* Quick Actions - Mobile Friendly */}
-        <div className="absolute top-3 right-12 flex space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
-          <Button size="icon" variant="secondary" className="bg-white/95 hover:bg-white shadow-lg border-0 w-9 h-9">
-            <Eye className="h-4 w-4 text-gray-700" />
-          </Button>
-        </div>
+
       </div>
 
       <CardContent className="p-4 space-y-3">

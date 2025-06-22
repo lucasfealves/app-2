@@ -38,6 +38,15 @@ export default function FavoritesPage() {
 
   const { data: favorites = [], isLoading } = useQuery<FavoriteItem[]>({
     queryKey: ['/api/favorites'],
+    queryFn: async () => {
+      const response = await fetch('/api/favorites', {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Erro ao buscar favoritos');
+      }
+      return response.json();
+    },
     enabled: !!user,
   });
 
@@ -45,6 +54,7 @@ export default function FavoritesPage() {
     mutationFn: async (productId: number) => {
       const response = await fetch(`/api/favorites/${productId}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
       if (!response.ok) {
         throw new Error('Erro ao remover dos favoritos');
@@ -74,6 +84,7 @@ export default function FavoritesPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           productId,
           quantity: 1,

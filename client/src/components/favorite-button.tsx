@@ -25,7 +25,9 @@ export default function FavoriteButton({
   const { data: favoriteStatus, isLoading } = useQuery({
     queryKey: ['/api/favorites/check', productId],
     queryFn: async () => {
-      const response = await fetch(`/api/favorites/check/${productId}`);
+      const response = await fetch(`/api/favorites/check/${productId}`, {
+        credentials: 'include',
+      });
       if (!response.ok) throw new Error('Erro ao verificar favorito');
       const data = await response.json();
       return data.isFavorited;
@@ -38,6 +40,7 @@ export default function FavoriteButton({
       const method = favoriteStatus ? 'DELETE' : 'POST';
       const response = await fetch(`/api/favorites/${productId}`, {
         method,
+        credentials: 'include',
       });
       
       if (!response.ok) {

@@ -848,8 +848,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Favorites routes
-  app.get('/api/favorites', isAuthenticated, async (req, res) => {
+  // Favorites routes  
+  app.get('/api/favorites', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const favorites = await storage.getUserFavorites(userId);
@@ -860,7 +860,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/favorites/:productId', isAuthenticated, async (req, res) => {
+  app.post('/api/favorites/:productId', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const productId = parseInt(req.params.productId);
@@ -889,7 +889,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/favorites/:productId', isAuthenticated, async (req, res) => {
+  app.delete('/api/favorites/:productId', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const productId = parseInt(req.params.productId);
@@ -910,7 +910,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/favorites/check/:productId', isAuthenticated, async (req, res) => {
+  app.get('/api/favorites/check/:productId', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const productId = parseInt(req.params.productId);
