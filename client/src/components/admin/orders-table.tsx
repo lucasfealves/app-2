@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, CheckCircle, AlertCircle } from "lucide-react";
+import { Link } from "wouter";
 
 export default function OrdersTable() {
   const { toast } = useToast();
@@ -191,9 +192,11 @@ export default function OrdersTable() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                        <Link href={`/admin/orders/${order.id}`}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" title="Visualizar pedido">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </Link>
                         {order.status !== 'delivered' && order.status !== 'cancelled' && (
                           <Select 
                             value={order.status || 'pending'}

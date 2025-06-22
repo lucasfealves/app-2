@@ -17,6 +17,7 @@ import Orders from "@/pages/orders";
 import OrderDetail from "@/pages/order-detail";
 import FavoritesPage from "@/pages/favorites";
 import Admin from "@/pages/admin";
+import AdminOrderDetail from "@/pages/admin/order-detail";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -43,6 +44,7 @@ function Router() {
           <Route path="/orders/:id" component={OrderDetail} />
           <Route path="/favorites" component={FavoritesPage} />
           <Route path="/admin" component={Admin} />
+          <Route path="/admin/orders/:id" component={AdminOrderDetail} />
         </>
       )}
       <Route component={NotFound} />
