@@ -22,7 +22,11 @@ interface Tenant {
   contactPhone?: string;
   address?: string;
   domain?: string;
-  settings?: any;
+  settings?: {
+    primaryColor?: string;
+    secondaryColor?: string;
+    [key: string]: any;
+  };
   isActive: boolean;
   subscriptionPlan?: string;
   subscriptionStatus?: string;
@@ -44,6 +48,8 @@ export default function TenantAdmin() {
     contactPhone: "",
     address: "",
     domain: "",
+    primaryColor: "#3b82f6",
+    secondaryColor: "#f1f5f9",
   });
 
   const queryClient = useQueryClient();
@@ -71,6 +77,8 @@ export default function TenantAdmin() {
         contactPhone: "",
         address: "",
         domain: "",
+        primaryColor: "#3b82f6",
+        secondaryColor: "#f1f5f9",
       });
       toast({
         title: "Sucesso",
@@ -121,7 +129,16 @@ export default function TenantAdmin() {
       });
       return;
     }
-    createTenantMutation.mutate(newTenant);
+    
+    const tenantData = {
+      ...newTenant,
+      settings: {
+        primaryColor: newTenant.primaryColor,
+        secondaryColor: newTenant.secondaryColor,
+      }
+    };
+    
+    createTenantMutation.mutate(tenantData);
   };
 
   const generateSlug = (name: string) => {
@@ -157,6 +174,8 @@ export default function TenantAdmin() {
       address: tenant.address || "",
       domain: tenant.domain || "",
       isActive: tenant.isActive,
+      primaryColor: tenant.settings?.primaryColor || "#3b82f6",
+      secondaryColor: tenant.settings?.secondaryColor || "#f1f5f9",
     });
     setSelectedTenant(tenant);
     setIsEditDialogOpen(true);
@@ -165,9 +184,19 @@ export default function TenantAdmin() {
   const handleUpdateTenant = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedTenant) {
+      const { primaryColor, secondaryColor, ...tenantData } = editingTenant as any;
+      
+      const updateData = {
+        ...tenantData,
+        settings: {
+          primaryColor: primaryColor || "#3b82f6",
+          secondaryColor: secondaryColor || "#f1f5f9",
+        }
+      };
+      
       updateTenantMutation.mutate({
         id: selectedTenant.id,
-        data: editingTenant
+        data: updateData
       });
     }
   };
@@ -290,9 +319,15 @@ export default function TenantAdmin() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">{tenant.name}</CardTitle>
-                <Badge variant={tenant.isActive ? "default" : "secondary"}>
-                  {tenant.isActive ? 'Ativo' : 'Inativo'}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-4 h-4 rounded-full border" 
+                    style={{ backgroundColor: tenant.settings?.primaryColor || "#3b82f6" }}
+                  />
+                  <Badge variant={tenant.isActive ? "default" : "secondary"}>
+                    {tenant.isActive ? 'Ativo' : 'Inativo'}
+                  </Badge>
+                </div>
               </div>
               <CardDescription>{tenant.slug}</CardDescription>
             </CardHeader>
@@ -303,8 +338,16 @@ export default function TenantAdmin() {
                 )}
                 
                 <div className="flex items-center gap-2">
-                  <Store className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-xs">Loja Multi-tenant</span>
+                  <Palette className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-xs">Tema personalizado</span>
+                  <div 
+                    className="w-3 h-3 rounded border"
+                    style={{ backgroundColor: tenant.settings?.primaryColor || "#3b82f6" }}
+                  />
+                  <div 
+                    className="w-3 h-3 rounded border"
+                    style={{ backgroundColor: tenant.settings?.secondaryColor || "#f1f5f9" }}
+                  />
                 </div>
 
                 {tenant.domain && (
@@ -425,6 +468,31 @@ export default function TenantAdmin() {
                 </div>
 
                 <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <Palette className="w-4 h-4" />
+                      Tema da Loja
+                    </Label>
+                    <div className="flex gap-3 mt-2">
+                      <div className="space-y-1">
+                        <div 
+                          className="w-12 h-12 rounded border-2"
+                          style={{ backgroundColor: selectedTenant.settings?.primaryColor || "#3b82f6" }}
+                        />
+                        <p className="text-xs text-center font-mono">{selectedTenant.settings?.primaryColor || "#3b82f6"}</p>
+                        <p className="text-xs text-center text-muted-foreground">Primária</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div 
+                          className="w-12 h-12 rounded border-2"
+                          style={{ backgroundColor: selectedTenant.settings?.secondaryColor || "#f1f5f9" }}
+                        />
+                        <p className="text-xs text-center font-mono">{selectedTenant.settings?.secondaryColor || "#f1f5f9"}</p>
+                        <p className="text-xs text-center text-muted-foreground">Secundária</p>
+                      </div>
+                    </div>
+                  </div>
+
                   {selectedTenant.contactEmail && (
                     <div>
                       <Label className="text-sm font-medium">Email de Contato</Label>
@@ -594,6 +662,27 @@ export default function TenantAdmin() {
                 value={editingTenant.address || ""}
                 onChange={(e) => setEditingTenant(prev => ({ ...prev, address: e.target.value }))}
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="editPrimaryColor">Cor Primária</Label>
+                <Input
+                  id="editPrimaryColor"
+                  type="color"
+                  value={(editingTenant as any)?.primaryColor || "#3b82f6"}
+                  onChange={(e) => setEditingTenant(prev => ({ ...prev, primaryColor: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="editSecondaryColor">Cor Secundária</Label>
+                <Input
+                  id="editSecondaryColor"
+                  type="color"
+                  value={(editingTenant as any)?.secondaryColor || "#f1f5f9"}
+                  onChange={(e) => setEditingTenant(prev => ({ ...prev, secondaryColor: e.target.value }))}
+                />
+              </div>
             </div>
 
             <div className="flex items-center space-x-2">

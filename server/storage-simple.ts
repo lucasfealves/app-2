@@ -86,9 +86,15 @@ export class DatabaseStorage {
   }
 
   async updateTenant(id: number, tenant: Partial<InsertTenant>): Promise<Tenant | undefined> {
+    // Processar o campo settings para garantir que seja JSON válido
+    const tenantData = { ...tenant };
+    if (tenantData.settings === '' || tenantData.settings === null) {
+      tenantData.settings = null;
+    }
+    
     const [updatedTenant] = await db
       .update(tenants)
-      .set({ ...tenant, updatedAt: new Date() })
+      .set({ ...tenantData, updatedAt: new Date() })
       .where(eq(tenants.id, id))
       .returning();
     return updatedTenant;
