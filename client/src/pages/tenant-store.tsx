@@ -1,302 +1,216 @@
-import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useRoute } from "wouter";
+import { useState } from "react";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { Store, Palette, Globe, ShoppingBag, Package, Users } from "lucide-react";
+import { ProductCard } from "@/components/product-card";
+import { ProductFilters } from "@/components/product-filters";
+import { Store, MapPin, Phone, Mail, Globe } from "lucide-react";
 
 interface Tenant {
-  id: string;
+  id: number;
   name: string;
   slug: string;
-  description?: string;
-  logo?: string;
-  primaryColor: string;
-  secondaryColor: string;
-  domain?: string;
+  domain: string | null;
+  description: string | null;
+  logoUrl: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  address: string | null;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  settings: any;
 }
 
 interface Product {
   id: number;
   name: string;
+  slug: string;
+  description: string | null;
   price: string;
-  imageUrl?: string;
-  description?: string;
+  comparePrice: string | null;
+  imageUrl: string | null;
   stock: number;
   isActive: boolean;
+  categoryId: number | null;
+  brandId: number | null;
+  tags: string[] | null;
 }
 
 export default function TenantStore() {
-  const [match, params] = useRoute("/store/:slug");
-  const slug = params?.slug;
-  const { toast } = useToast();
-  const [tenantTheme, setTenantTheme] = useState<{ primary: string; secondary: string } | null>(null);
-
-  // Buscar dados do tenant
-  const { data: tenant, isLoading: tenantLoading, error: tenantError } = useQuery({
-    queryKey: [`/api/tenants/${slug}`],
-    enabled: !!slug,
+  const [location] = useLocation();
+  const [filters, setFilters] = useState({
+    categoryId: undefined as number | undefined,
+    brandId: undefined as number | undefined,
+    search: "",
+    minPrice: undefined as number | undefined,
+    maxPrice: undefined as number | undefined,
+    sortBy: "name",
+    sortOrder: "asc" as "asc" | "desc",
   });
 
-  // Buscar produtos do tenant
-  const { data: products = [], isLoading: productsLoading } = useQuery({
-    queryKey: ["/api/products", tenant?.id],
-    queryFn: async () => {
-      if (!tenant?.id) return [];
-      return apiRequest(`/api/products?tenantId=${tenant.id}`);
-    },
-    enabled: !!tenant?.id,
+  // Get current tenant
+  const { data: tenant, isLoading: tenantLoading } = useQuery<Tenant>({
+    queryKey: ['/api/current-tenant'],
   });
 
-  // Aplicar tema do tenant
-  useEffect(() => {
-    if (tenant) {
-      setTenantTheme({
-        primary: tenant.primaryColor,
-        secondary: tenant.secondaryColor,
-      });
-      
-      // Aplicar cores CSS customizadas
-      document.documentElement.style.setProperty('--tenant-primary', tenant.primaryColor);
-      document.documentElement.style.setProperty('--tenant-secondary', tenant.secondaryColor);
-    }
+  // Get tenant-specific products
+  const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
+    queryKey: ['/api/tenant-products', filters],
+    enabled: !!tenant,
+  });
 
-    return () => {
-      // Limpar cores quando sair da página
-      document.documentElement.style.removeProperty('--tenant-primary');
-      document.documentElement.style.removeProperty('--tenant-secondary');
-    };
-  }, [tenant]);
+  // Get categories for filters
+  const { data: categories = [] } = useQuery({
+    queryKey: ['/api/categories'],
+  });
+
+  // Get brands for filters
+  const { data: brands = [] } = useQuery({
+    queryKey: ['/api/brands'],
+  });
 
   if (tenantLoading) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Carregando loja...</div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p>Carregando loja...</p>
         </div>
       </div>
     );
   }
 
-  if (tenantError || !tenant) {
+  if (!tenant) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="text-center py-12">
-          <Store className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Loja não encontrada</h2>
-          <p className="text-muted-foreground mb-4">
-            A loja "{slug}" não existe ou não está ativa.
-          </p>
-          <Button onClick={() => window.location.href = "/"}>
-            Voltar ao início
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!tenant.isActive) {
-    return (
-      <div className="container mx-auto py-8">
-        <div className="text-center py-12">
-          <Store className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Loja temporariamente indisponível</h2>
-          <p className="text-muted-foreground mb-4">
-            A loja "{tenant.name}" está temporariamente fora do ar.
-          </p>
-          <Button onClick={() => window.location.href = "/"}>
-            Voltar ao início
-          </Button>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Store className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Loja não encontrada</h1>
+          <p className="text-gray-600 mb-4">A loja que você está procurando não existe ou está inativa.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: `${tenant.secondaryColor}20` }}>
-      {/* Header da Loja */}
-      <div 
-        className="py-16 px-4 text-white"
-        style={{ 
-          backgroundColor: tenant.primaryColor,
-          background: `linear-gradient(135deg, ${tenant.primaryColor} 0%, ${tenant.primaryColor}dd 100%)`
-        }}
-      >
-        <div className="container mx-auto text-center">
-          <div className="flex items-center justify-center mb-4">
-            <div 
-              className="w-20 h-20 rounded-full border-4 border-white/30 flex items-center justify-center text-3xl font-bold mr-6"
-              style={{ backgroundColor: `${tenant.secondaryColor}40` }}
-            >
-              {tenant.name.charAt(0).toUpperCase()}
-            </div>
-            <div className="text-left">
-              <h1 className="text-4xl font-bold mb-2">{tenant.name}</h1>
-              <p className="text-lg opacity-90">/{tenant.slug}</p>
-            </div>
-          </div>
-          
-          {tenant.description && (
-            <p className="text-xl opacity-90 max-w-2xl mx-auto">
-              {tenant.description}
-            </p>
-          )}
-
-          <div className="flex items-center justify-center gap-6 mt-8 text-sm opacity-80">
-            {tenant.domain && (
-              <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4" />
-                {tenant.domain}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header da loja */}
+      <div className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-start space-x-6">
+            {tenant.logoUrl ? (
+              <img
+                src={tenant.logoUrl}
+                alt={tenant.name}
+                className="w-20 h-20 rounded-lg object-cover"
+              />
+            ) : (
+              <div className="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center">
+                <Store className="w-10 h-10 text-gray-400" />
               </div>
             )}
-            <div className="flex items-center gap-2">
-              <Package className="w-4 h-4" />
-              {products.length} produtos
+            
+            <div className="flex-1">
+              <div className="flex items-center space-x-3 mb-2">
+                <h1 className="text-3xl font-bold text-gray-900">{tenant.name}</h1>
+                {tenant.isActive ? (
+                  <Badge variant="default">Ativa</Badge>
+                ) : (
+                  <Badge variant="secondary">Inativa</Badge>
+                )}
+              </div>
+              
+              {tenant.description && (
+                <p className="text-gray-600 text-lg mb-4">{tenant.description}</p>
+              )}
+
+              <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                {tenant.contactEmail && (
+                  <div className="flex items-center space-x-1">
+                    <Mail className="w-4 h-4" />
+                    <span>{tenant.contactEmail}</span>
+                  </div>
+                )}
+                {tenant.contactPhone && (
+                  <div className="flex items-center space-x-1">
+                    <Phone className="w-4 h-4" />
+                    <span>{tenant.contactPhone}</span>
+                  </div>
+                )}
+                {tenant.address && (
+                  <div className="flex items-center space-x-1">
+                    <MapPin className="w-4 h-4" />
+                    <span>{tenant.address}</span>
+                  </div>
+                )}
+                {tenant.domain && (
+                  <div className="flex items-center space-x-1">
+                    <Globe className="w-4 h-4" />
+                    <span>{tenant.domain}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Conteúdo Principal */}
-      <div className="container mx-auto py-12 px-4">
-        {/* Estatísticas da Loja */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total de Produtos</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{products.length}</div>
-              <p className="text-xs text-muted-foreground">produtos ativos</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Paleta de Cores</CardTitle>
-              <Palette className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-2">
-                <div 
-                  className="w-8 h-8 rounded border"
-                  style={{ backgroundColor: tenant.primaryColor }}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Filtros */}
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader>
+                <CardTitle>Filtros</CardTitle>
+                <CardDescription>Refine sua busca</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ProductFilters
+                  categories={categories}
+                  brands={brands}
+                  filters={filters}
+                  onFiltersChange={setFilters}
                 />
-                <div 
-                  className="w-8 h-8 rounded border"
-                  style={{ backgroundColor: tenant.secondaryColor }}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">tema personalizado</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Status da Loja</CardTitle>
-              <Store className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <Badge variant="default" className="mb-2">Ativa</Badge>
-              <p className="text-xs text-muted-foreground">funcionando normalmente</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Separator className="my-8" />
-
-        {/* Lista de Produtos */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Produtos da Loja</h2>
-            <Badge variant="outline">{products.length} itens</Badge>
+              </CardContent>
+            </Card>
           </div>
 
-          {productsLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardHeader>
-                    <div className="h-4 bg-muted rounded w-3/4"></div>
-                    <div className="h-3 bg-muted rounded w-1/2"></div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-20 bg-muted rounded"></div>
-                  </CardContent>
-                </Card>
-              ))}
+          {/* Produtos */}
+          <div className="lg:col-span-3">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Produtos</h2>
+              <div className="text-sm text-gray-500">
+                {products.length} produto{products.length !== 1 ? 's' : ''} encontrado{products.length !== 1 ? 's' : ''}
+              </div>
             </div>
-          ) : products.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product: Product) => (
-                <Card key={product.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="text-lg">{product.name}</CardTitle>
-                    <CardDescription>
-                      <span className="text-lg font-semibold" style={{ color: tenant.primaryColor }}>
-                        R$ {product.price}
-                      </span>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {product.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {product.description}
-                        </p>
-                      )}
-                      
-                      <div className="flex items-center justify-between">
-                        <Badge variant={product.stock > 0 ? "default" : "secondary"}>
-                          {product.stock > 0 ? `${product.stock} em estoque` : "Esgotado"}
-                        </Badge>
-                        
-                        <Button 
-                          size="sm" 
-                          disabled={product.stock === 0}
-                          style={{ backgroundColor: tenant.primaryColor }}
-                          className="text-white hover:opacity-90"
-                        >
-                          <ShoppingBag className="w-4 h-4 mr-2" />
-                          Comprar
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Package className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Nenhum produto encontrado</h3>
-              <p className="text-muted-foreground">
-                Esta loja ainda não possui produtos cadastrados.
-              </p>
-            </div>
-          )}
-        </div>
 
-        {/* Informações da Loja */}
-        <Separator className="my-12" />
-        
-        <div className="text-center space-y-4">
-          <h3 className="text-lg font-medium">Sobre {tenant.name}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground max-w-2xl mx-auto">
-            <div>
-              <strong>Criada em:</strong> {new Date(tenant.createdAt).toLocaleDateString('pt-BR')}
-            </div>
-            <div>
-              <strong>Última atualização:</strong> {new Date(tenant.updatedAt).toLocaleDateString('pt-BR')}
-            </div>
+            {productsLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="bg-gray-200 rounded-lg h-48 mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  </div>
+                ))}
+              </div>
+            ) : products.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-gray-400 mb-4">
+                  <Store className="w-16 h-16 mx-auto" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum produto encontrado</h3>
+                <p className="text-gray-500">Tente ajustar os filtros para ver mais produtos.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -39,6 +39,18 @@ export const tenants = pgTable("tenants", {
   contactPhone: text("contact_phone"),
   address: text("address"),
   settings: json("settings"),
+  // Home page customization
+  customHomePage: boolean("custom_home_page").default(false),
+  homePageTitle: text("home_page_title"),
+  homePageSubtitle: text("home_page_subtitle"),
+  homePageBannerUrl: text("home_page_banner_url"),
+  homePageContent: text("home_page_content"),
+  homePageFeaturedProducts: text("home_page_featured_products").array(),
+  // Theme customization
+  primaryColor: text("primary_color").default("#1f2937"),
+  secondaryColor: text("secondary_color").default("#f3f4f6"),
+  accentColor: text("accent_color").default("#3b82f6"),
+  fontFamily: text("font_family").default("Inter"),
   isActive: boolean("is_active").default(true),
   subscriptionPlan: text("subscription_plan").default("basic"),
   subscriptionStatus: text("subscription_status").default("active"),

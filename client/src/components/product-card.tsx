@@ -28,7 +28,7 @@ interface ProductCardProps {
   };
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+function ProductCard({ product }: ProductCardProps) {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -212,3 +212,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     </Card>
   );
 }
+
+// Export both named and default exports to support different import styles
+export { ProductCard };
+export default ProductCard;

@@ -42,6 +42,7 @@ export interface IStorage {
   getTenants(): Promise<Tenant[]>;
   getTenant(id: string): Promise<Tenant | undefined>;
   getTenantBySlug(slug: string): Promise<Tenant | undefined>;
+  getTenantByDomain(domain: string): Promise<Tenant | undefined>;
   createTenant(tenant: InsertTenant): Promise<Tenant>;
   updateTenant(id: string, tenant: Partial<InsertTenant>): Promise<Tenant | undefined>;
 
@@ -611,6 +612,22 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(tenants)
       .where(eq(tenants.id, id));
+    return tenant;
+  }
+
+  async getTenantBySlug(slug: string): Promise<Tenant | undefined> {
+    const [tenant] = await db
+      .select()
+      .from(tenants)
+      .where(eq(tenants.slug, slug));
+    return tenant;
+  }
+
+  async getTenantByDomain(domain: string): Promise<Tenant | undefined> {
+    const [tenant] = await db
+      .select()
+      .from(tenants)
+      .where(eq(tenants.domain, domain));
     return tenant;
   }
 

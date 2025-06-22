@@ -6,9 +6,44 @@ import { insertProductSchema, insertCategorySchema, insertBrandSchema, insertTen
 import { nanoid } from 'nanoid';
 import { z } from "zod";
 
+// Middleware to detect tenant by domain
+const tenantMiddleware = async (req: any, res: any, next: any) => {
+  try {
+    const host = req.get('host');
+    const subdomain = host?.split('.')[0];
+    
+    let tenant = null;
+    
+    // Try to find tenant by domain first
+    if (host && host !== 'localhost:5000') {
+      tenant = await storage.getTenantByDomain(host);
+    }
+    
+    // If not found by domain, try by subdomain as slug
+    if (!tenant && subdomain && subdomain !== 'localhost:5000') {
+      tenant = await storage.getTenantBySlug(subdomain);
+    }
+    
+    // If still not found, use default tenant
+    if (!tenant) {
+      const tenants = await storage.getTenants();
+      tenant = tenants.find(t => t.slug === 'demo') || tenants[0];
+    }
+    
+    req.tenant = tenant;
+    next();
+  } catch (error) {
+    console.error('Error in tenant middleware:', error);
+    next();
+  }
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+  
+  // Tenant detection middleware
+  app.use(tenantMiddleware);
 
   // Auth routes
   app.post('/api/auth/register', async (req, res) => {
@@ -715,6 +750,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating user status:", error);
       res.status(500).json({ message: "Failed to update user status" });
+    }
+  });
+
+  // Public tenant routes (for accessing tenant by domain/slug)
+  app.get('/api/tenants', async (req: any, res) => {
+    try {
+      const tenants = await storage.getTenants();
+      res.json(tenants);
+    } catch (error) {
+      console.error("Error fetching tenants:", error);
+      res.status(500).json({ message: "Failed to fetch tenants" });
+    }
+  });
+
+  app.get('/api/tenants/:slugOrId', async (req: any, res) => {
+    try {
+      const param = req.params.slugOrId;
+      let tenant;
+      
+      // Try as ID first (if numeric)
+      if (!isNaN(param)) {
+        tenant = await storage.getTenant(Number(param));
+      }
+      
+      // If not found, try as slug
+      if (!tenant) {
+        tenant = await storage.getTenantBySlug(param);
+      }
+
+      if (!tenant) {
+        return res.status(404).json({ message: "Tenant not found" });
+      }
+
+      res.json(tenant);
+    } catch (error) {
+      console.error("Error fetching tenant:", error);
+      res.status(500).json({ message: "Failed to fetch tenant" });
+    }
+  });
+
+  // Current tenant context based on domain
+  app.get('/api/current-tenant', async (req: any, res) => {
+    try {
+      const tenant = req.tenant;
+      
+      if (!tenant) {
+        return res.status(404).json({ message: "No tenant found for this domain" });
+      }
+
+      res.json(tenant);
+    } catch (error) {
+      console.error("Error fetching current tenant:", error);
+      res.status(500).json({ message: "Failed to fetch current tenant" });
+    }
+  });
+
+  // Tenant-specific product routes
+  app.get('/api/tenant-products', async (req: any, res) => {
+    try {
+      const tenant = req.tenant;
+      
+      if (!tenant) {
+        return res.status(404).json({ message: "No tenant context" });
+      }
+
+      const filters = {
+        tenantId: tenant.id.toString(),
+        categoryId: req.query.categoryId ? Number(req.query.categoryId) : undefined,
+        brandId: req.query.brandId ? Number(req.query.brandId) : undefined,
+        search: req.query.search as string,
+        minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
+        maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
+        sortBy: req.query.sortBy as string,
+        sortOrder: req.query.sortOrder as 'asc' | 'desc',
+        limit: req.query.limit ? Number(req.query.limit) : undefined,
+        offset: req.query.offset ? Number(req.query.offset) : undefined,
+      };
+
+      const products = await storage.getProducts(filters);
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching tenant products:", error);
+      res.status(500).json({ message: "Failed to fetch products" });
     }
   });
 

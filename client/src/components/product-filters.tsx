@@ -20,7 +20,7 @@ interface ProductFiltersProps {
   onFiltersChange: (filters: any) => void;
 }
 
-export default function ProductFilters({ 
+function ProductFilters({ 
   filters, 
   categories, 
   brands, 
@@ -180,3 +180,7 @@ export default function ProductFilters({
     </Card>
   );
 }
+
+// Export both named and default exports to support different import styles
+export { ProductFilters };
+export default ProductFilters;

@@ -80,6 +80,19 @@ export class DatabaseStorage {
     return result.rows[0] as Tenant | undefined;
   }
 
+  async getTenantByDomain(domain: string): Promise<Tenant | undefined> {
+    const result = await db.execute(sql`
+      SELECT id, name, slug, domain, description, logo_url as "logoUrl", 
+             contact_email as "contactEmail", contact_phone as "contactPhone", 
+             address, settings, is_active as "isActive", 
+             subscription_plan as "subscriptionPlan", subscription_status as "subscriptionStatus",
+             created_at as "createdAt", updated_at as "updatedAt"
+      FROM tenants 
+      WHERE domain = ${domain}
+    `);
+    return result.rows[0] as Tenant | undefined;
+  }
+
   async createTenant(tenant: InsertTenant): Promise<Tenant> {
     const [newTenant] = await db.insert(tenants).values(tenant).returning();
     return newTenant;
