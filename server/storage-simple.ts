@@ -310,37 +310,63 @@ export class DatabaseStorage {
   }
 
   async getCartItems(cartId: number): Promise<(CartItem & { product: Product })[]> {
-    return await db
-      .select({
-        id: cartItems.id,
-        cartId: cartItems.cartId,
-        productId: cartItems.productId,
-        quantity: cartItems.quantity,
-        variantId: cartItems.variantId,
-        addedAt: cartItems.addedAt,
-        product: {
-          id: products.id,
-          name: products.name,
-          price: products.price,
-          originalPrice: products.originalPrice,
-          imageUrl: products.imageUrl,
-          slug: products.slug,
-          description: products.description,
-          shortDescription: products.shortDescription,
-          stock: products.stock,
-          categoryId: products.categoryId,
-          brandId: products.brandId,
-          tenantId: products.tenantId,
-          images: products.images,
-          specifications: products.specifications,
-          isActive: products.isActive,
-          createdAt: products.createdAt,
-          updatedAt: products.updatedAt,
-        },
-      })
-      .from(cartItems)
-      .innerJoin(products, eq(cartItems.productId, products.id))
-      .where(eq(cartItems.cartId, cartId));
+    const result = await db.execute(sql`
+      SELECT 
+        ci.id,
+        ci.cart_id as "cartId",
+        ci.product_id as "productId", 
+        ci.quantity,
+        ci.variant_id as "variantId",
+        ci.added_at as "addedAt",
+        p.id as "product_id",
+        p.name as "product_name",
+        p.slug as "product_slug", 
+        p.description as "product_description",
+        p.short_description as "product_shortDescription",
+        p.price as "product_price",
+        p.compare_price as "product_comparePrice",
+        p.image_url as "product_imageUrl",
+        p.stock as "product_stock",
+        p.category_id as "product_categoryId",
+        p.brand_id as "product_brandId",
+        p.tenant_id as "product_tenantId",
+        p.is_active as "product_isActive",
+        p.created_at as "product_createdAt",
+        p.updated_at as "product_updatedAt"
+      FROM cart_items ci
+      INNER JOIN products p ON ci.product_id = p.id  
+      WHERE ci.cart_id = ${cartId}
+    `);
+    
+    return result.rows.map((row: any) => ({
+      id: row.id,
+      cartId: row.cartId,
+      productId: row.productId,
+      quantity: row.quantity,
+      variantId: row.variantId,
+      addedAt: row.addedAt,
+      product: {
+        id: row.product_id,
+        name: row.product_name,
+        slug: row.product_slug,
+        description: row.product_description,
+        shortDescription: row.product_shortDescription,
+        price: row.product_price,
+        comparePrice: row.product_comparePrice,
+        originalPrice: row.product_comparePrice,
+        imageUrl: row.product_imageUrl,
+        stock: row.product_stock,
+        categoryId: row.product_categoryId,
+        brandId: row.product_brandId,
+        tenantId: row.product_tenantId,
+        isActive: row.product_isActive,
+        createdAt: row.product_createdAt,
+        updatedAt: row.product_updatedAt,
+        tags: null,
+        images: null,
+        specifications: null
+      }
+    })) as (CartItem & { product: Product })[];
   }
 
   async addToCart(cartItem: InsertCartItem): Promise<CartItem> {

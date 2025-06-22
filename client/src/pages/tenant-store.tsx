@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ProductCard } from "@/components/product-card";
-import { ProductFilters } from "@/components/product-filters";
+import { TenantProductFilters } from "@/components/tenant-product-filters";
 import { Store, MapPin, Phone, Mail, Globe } from "lucide-react";
 
 interface Tenant {
@@ -95,60 +95,65 @@ export default function TenantStore() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header da loja */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-start space-x-6">
-            {tenant.logoUrl ? (
-              <img
-                src={tenant.logoUrl}
-                alt={tenant.name}
-                className="w-20 h-20 rounded-lg object-cover"
-              />
-            ) : (
-              <div className="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center">
-                <Store className="w-10 h-10 text-gray-400" />
+      <div className="relative bg-white shadow-xl border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center space-y-6 lg:space-y-0 lg:space-x-8">
+            <div className="relative">
+              {tenant.logoUrl ? (
+                <img
+                  src={tenant.logoUrl}
+                  alt={tenant.name}
+                  className="w-24 h-24 lg:w-28 lg:h-28 rounded-2xl object-cover shadow-lg ring-4 ring-white"
+                />
+              ) : (
+                <div className="w-24 h-24 lg:w-28 lg:h-28 bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl flex items-center justify-center shadow-lg ring-4 ring-white">
+                  <Store className="w-12 h-12 text-slate-400" />
+                </div>
+              )}
+              <div className="absolute -bottom-2 -right-2">
+                <Badge variant={tenant.isActive ? "default" : "destructive"} className="shadow-sm">
+                  {tenant.isActive ? "Ativa" : "Inativa"}
+                </Badge>
               </div>
-            )}
+            </div>
             
-            <div className="flex-1">
-              <div className="flex items-center space-x-3 mb-2">
-                <h1 className="text-3xl font-bold text-gray-900">{tenant.name}</h1>
-                {tenant.isActive ? (
-                  <Badge variant="default">Ativa</Badge>
-                ) : (
-                  <Badge variant="secondary">Inativa</Badge>
+            <div className="flex-1 space-y-4">
+              <div>
+                <h1 className="text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight">
+                  {tenant.name}
+                </h1>
+                {tenant.description && (
+                  <p className="text-lg text-slate-600 mt-3 max-w-2xl leading-relaxed">
+                    {tenant.description}
+                  </p>
                 )}
               </div>
-              
-              {tenant.description && (
-                <p className="text-gray-600 text-lg mb-4">{tenant.description}</p>
-              )}
 
-              <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {tenant.contactEmail && (
-                  <div className="flex items-center space-x-1">
-                    <Mail className="w-4 h-4" />
-                    <span>{tenant.contactEmail}</span>
+                  <div className="flex items-center bg-slate-50 rounded-lg px-3 py-2">
+                    <Mail className="h-5 w-5 text-slate-400 mr-3 flex-shrink-0" />
+                    <span className="text-sm text-slate-700 font-medium truncate">{tenant.contactEmail}</span>
                   </div>
                 )}
                 {tenant.contactPhone && (
-                  <div className="flex items-center space-x-1">
-                    <Phone className="w-4 h-4" />
-                    <span>{tenant.contactPhone}</span>
+                  <div className="flex items-center bg-slate-50 rounded-lg px-3 py-2">
+                    <Phone className="h-5 w-5 text-slate-400 mr-3 flex-shrink-0" />
+                    <span className="text-sm text-slate-700 font-medium">{tenant.contactPhone}</span>
                   </div>
                 )}
                 {tenant.address && (
-                  <div className="flex items-center space-x-1">
-                    <MapPin className="w-4 h-4" />
-                    <span>{tenant.address}</span>
+                  <div className="flex items-center bg-slate-50 rounded-lg px-3 py-2">
+                    <MapPin className="h-5 w-5 text-slate-400 mr-3 flex-shrink-0" />
+                    <span className="text-sm text-slate-700 font-medium truncate">{tenant.address}</span>
                   </div>
                 )}
                 {tenant.domain && (
-                  <div className="flex items-center space-x-1">
-                    <Globe className="w-4 h-4" />
-                    <span>{tenant.domain}</span>
+                  <div className="flex items-center bg-slate-50 rounded-lg px-3 py-2">
+                    <Globe className="h-5 w-5 text-slate-400 mr-3 flex-shrink-0" />
+                    <span className="text-sm text-slate-700 font-medium truncate">{tenant.domain}</span>
                   </div>
                 )}
               </div>
@@ -157,59 +162,121 @@ export default function TenantStore() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex flex-col xl:flex-row gap-8">
           {/* Filtros */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle>Filtros</CardTitle>
-                <CardDescription>Refine sua busca</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ProductFilters
-                  categories={categories}
-                  brands={brands}
-                  filters={filters}
-                  onFiltersChange={setFilters}
-                />
-              </CardContent>
-            </Card>
+          <div className="xl:w-80">
+            <div className="sticky top-8">
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center text-slate-900">
+                    <Store className="h-5 w-5 mr-2 text-slate-600" />
+                    Filtros
+                  </CardTitle>
+                  <CardDescription className="text-slate-600">
+                    Refine sua busca por produtos
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TenantProductFilters
+                    filters={{
+                      categoryId: filters.categoryId?.toString() || "",
+                      brandId: filters.brandId?.toString() || "",
+                      search: filters.search,
+                      minPrice: filters.minPrice?.toString() || "",
+                      maxPrice: filters.maxPrice?.toString() || "",
+                      sortBy: filters.sortBy,
+                      sortOrder: filters.sortOrder,
+                    }}
+                    categories={categories || []}
+                    brands={brands || []}
+                    onFiltersChange={(newFilters) => {
+                      setFilters({
+                        categoryId: newFilters.categoryId ? parseInt(newFilters.categoryId) : undefined,
+                        brandId: newFilters.brandId ? parseInt(newFilters.brandId) : undefined,
+                        search: newFilters.search || "",
+                        minPrice: newFilters.minPrice ? parseFloat(newFilters.minPrice) : undefined,
+                        maxPrice: newFilters.maxPrice ? parseFloat(newFilters.maxPrice) : undefined,
+                        sortBy: newFilters.sortBy || "name",
+                        sortOrder: newFilters.sortOrder || "asc",
+                      });
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
           {/* Produtos */}
-          <div className="lg:col-span-3">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Produtos</h2>
-              <div className="text-sm text-gray-500">
-                {products.length} produto{products.length !== 1 ? 's' : ''} encontrado{products.length !== 1 ? 's' : ''}
-              </div>
-            </div>
-
+          <div className="flex-1">
             {productsLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="bg-gray-200 rounded-lg h-48 mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {[...Array(9)].map((_, i) => (
+                  <Card key={i} className="overflow-hidden border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                    <div className="bg-gradient-to-br from-slate-100 to-slate-200 h-56 animate-pulse"></div>
+                    <CardContent className="p-6 space-y-3">
+                      <div className="bg-slate-200 h-5 rounded-md animate-pulse"></div>
+                      <div className="bg-slate-200 h-4 rounded-md w-2/3 animate-pulse"></div>
+                      <div className="bg-slate-200 h-7 rounded-md w-1/2 animate-pulse"></div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
-            ) : products.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-gray-400 mb-4">
-                  <Store className="w-16 h-16 mx-auto" />
+            ) : products && products.length > 0 ? (
+              <div>
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-3xl font-bold text-slate-900">
+                    Produtos ({products.length})
+                  </h2>
+                  <div className="text-sm text-slate-500 bg-slate-50 px-3 py-1 rounded-full">
+                    {tenant?.name} • Loja Online
+                  </div>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum produto encontrado</h3>
-                <p className="text-gray-500">Tente ajustar os filtros para ver mais produtos.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {products.map((product) => (
+                    <div key={product.id} className="group transform transition-all duration-200 hover:scale-105">
+                      <ProductCard
+                        product={product}
+                        onAddToCart={(productId, quantity) => {
+                          console.log(`Added ${quantity} of product ${productId} to cart`);
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardContent className="text-center py-24">
+                  <div className="relative mb-8">
+                    <Store className="h-20 w-20 text-slate-300 mx-auto" />
+                    <div className="absolute -top-2 -right-2 h-8 w-8 bg-slate-100 rounded-full flex items-center justify-center">
+                      <span className="text-slate-400 text-lg">?</span>
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-4">
+                    Nenhum produto encontrado
+                  </h3>
+                  <p className="text-slate-600 max-w-md mx-auto leading-relaxed mb-8">
+                    Esta loja ainda não possui produtos cadastrados ou não há produtos que correspondam aos filtros aplicados.
+                  </p>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setFilters({
+                      categoryId: undefined,
+                      brandId: undefined,
+                      search: "",
+                      minPrice: undefined,
+                      maxPrice: undefined,
+                      sortBy: "name",
+                      sortOrder: "asc",
+                    })}
+                    className="shadow-sm"
+                  >
+                    Limpar Filtros
+                  </Button>
+                </CardContent>
+              </Card>
             )}
           </div>
         </div>
