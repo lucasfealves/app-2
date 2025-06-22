@@ -14,6 +14,7 @@ import ProductDetail from "@/pages/product-detail";
 import Cart from "@/pages/cart";
 import Checkout from "@/pages/checkout";
 import Orders from "@/pages/orders";
+import OrderDetail from "@/pages/order-detail";
 import Admin from "@/pages/admin";
 
 function Router() {
@@ -38,6 +39,7 @@ function Router() {
           <Route path="/cart" component={Cart} />
           <Route path="/checkout" component={Checkout} />
           <Route path="/orders" component={Orders} />
+          <Route path="/orders/:id" component={OrderDetail} />
           <Route path="/admin" component={Admin} />
         </>
       )}

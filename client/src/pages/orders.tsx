@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Package, AlertCircle } from "lucide-react";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "wouter";
 
 export default function Orders() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -158,9 +159,11 @@ export default function Orders() {
                         )}
                       </div>
                       <div className="space-x-2">
-                        <Button variant="outline" size="sm">
-                          Ver Detalhes
-                        </Button>
+                        <Link href={`/orders/${order.id}`}>
+                          <Button variant="outline" size="sm">
+                            Ver Detalhes
+                          </Button>
+                        </Link>
                         {order.status === 'delivered' && (
                           <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
                             Comprar Novamente
