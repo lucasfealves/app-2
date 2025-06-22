@@ -19,13 +19,15 @@ function generatePixCode(params: {
   console.log('Generating PIX code with params:', params);
   
   try {
-    const pixCode = pixUtils.createStaticPix({
+    const pixObject = pixUtils.createStaticPix({
       merchantName: merchantName.trim().substring(0, 25),
       merchantCity: merchantCity.trim().substring(0, 15),
       pixKey: pixKey.trim(),
       infoAdicional: `Pedido ${orderId}`,
       transactionAmount: amount
     });
+    
+    const pixCode = pixObject.toBRCode();
     
     console.log('Generated PIX code:', pixCode);
     console.log('PIX code length:', pixCode.length);
