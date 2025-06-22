@@ -106,7 +106,7 @@ export default function PaymentSettings() {
   };
 
   const handleSaveSettings = (section: string, data: any) => {
-    updateSettingsMutation.mutate({ [section]: data });
+    updateSettingsMutation.mutate({ provider: section, ...data });
   };
 
   if (isLoading) {
@@ -171,7 +171,7 @@ export default function PaymentSettings() {
               </div>
               <Switch 
                 checked={settings?.pix?.enabled || false}
-                onCheckedChange={(enabled) => handleSaveSettings('pix', { ...settings?.pix, enabled })}
+                onCheckedChange={(enabled) => handleSaveSettings('pix', { enabled, ...settings?.pix })}
               />
             </CardHeader>
             <CardContent className="space-y-4">
@@ -181,7 +181,7 @@ export default function PaymentSettings() {
                   <Input
                     id="pixKey"
                     value={settings?.pix?.pixKey || ""}
-                    onChange={(e) => handleSaveSettings('pix', { ...settings?.pix, pixKey: e.target.value })}
+                    onChange={(e) => handleSaveSettings('pix', { enabled: settings?.pix?.enabled, pixKey: e.target.value, merchantName: settings?.pix?.merchantName, merchantCity: settings?.pix?.merchantCity, discount: settings?.pix?.discount })}
                     placeholder="email@exemplo.com ou CPF/CNPJ"
                   />
                 </div>
@@ -190,7 +190,7 @@ export default function PaymentSettings() {
                   <Input
                     id="merchantName"
                     value={settings?.pix?.merchantName || ""}
-                    onChange={(e) => handleSaveSettings('pix', { ...settings?.pix, merchantName: e.target.value })}
+                    onChange={(e) => handleSaveSettings('pix', { enabled: settings?.pix?.enabled, pixKey: settings?.pix?.pixKey, merchantName: e.target.value, merchantCity: settings?.pix?.merchantCity, discount: settings?.pix?.discount })}
                     placeholder="Minha Loja LTDA"
                   />
                 </div>
@@ -202,7 +202,7 @@ export default function PaymentSettings() {
                   <Input
                     id="merchantCity"
                     value={settings?.pix?.merchantCity || ""}
-                    onChange={(e) => handleSaveSettings('pix', { ...settings?.pix, merchantCity: e.target.value })}
+                    onChange={(e) => handleSaveSettings('pix', { enabled: settings?.pix?.enabled, pixKey: settings?.pix?.pixKey, merchantName: settings?.pix?.merchantName, merchantCity: e.target.value, discount: settings?.pix?.discount })}
                     placeholder="São Paulo"
                   />
                 </div>
@@ -215,7 +215,7 @@ export default function PaymentSettings() {
                     max="100"
                     step="0.1"
                     value={settings?.pix?.discount || 0}
-                    onChange={(e) => handleSaveSettings('pix', { ...settings?.pix, discount: parseFloat(e.target.value) })}
+                    onChange={(e) => handleSaveSettings('pix', { enabled: settings?.pix?.enabled, pixKey: settings?.pix?.pixKey, merchantName: settings?.pix?.merchantName, merchantCity: settings?.pix?.merchantCity, discount: parseFloat(e.target.value) || 0 })}
                     placeholder="5.0"
                   />
                 </div>
@@ -258,7 +258,7 @@ export default function PaymentSettings() {
               </div>
               <Switch 
                 checked={settings?.creditCard?.enabled || false}
-                onCheckedChange={(enabled) => handleSaveSettings('creditCard', { ...settings?.creditCard, enabled })}
+                onCheckedChange={(enabled) => handleSaveSettings('creditCard', { enabled, ...settings?.creditCard })}
               />
             </CardHeader>
             <CardContent className="space-y-4">
@@ -268,7 +268,7 @@ export default function PaymentSettings() {
                   id="processor"
                   className="w-full p-2 border rounded-md"
                   value={settings?.creditCard?.processor || "stripe"}
-                  onChange={(e) => handleSaveSettings('creditCard', { ...settings?.creditCard, processor: e.target.value })}
+                  onChange={(e) => handleSaveSettings('creditCard', { enabled: settings?.creditCard?.enabled, processor: e.target.value, publicKey: settings?.creditCard?.publicKey, secretKey: settings?.creditCard?.secretKey, webhookUrl: settings?.creditCard?.webhookUrl })}
                 >
                   <option value="stripe">Stripe</option>
                   <option value="mercadopago">Mercado Pago</option>
@@ -283,7 +283,7 @@ export default function PaymentSettings() {
                   <Input
                     id="publicKey"
                     value={settings?.creditCard?.publicKey || ""}
-                    onChange={(e) => handleSaveSettings('creditCard', { ...settings?.creditCard, publicKey: e.target.value })}
+                    onChange={(e) => handleSaveSettings('creditCard', { enabled: settings?.creditCard?.enabled, processor: settings?.creditCard?.processor, publicKey: e.target.value, secretKey: settings?.creditCard?.secretKey, webhookUrl: settings?.creditCard?.webhookUrl })}
                     placeholder="pk_live_..."
                   />
                 </div>
@@ -294,7 +294,7 @@ export default function PaymentSettings() {
                       id="secretKey"
                       type={showSecrets.secretKey ? "text" : "password"}
                       value={settings?.creditCard?.secretKey || ""}
-                      onChange={(e) => handleSaveSettings('creditCard', { ...settings?.creditCard, secretKey: e.target.value })}
+                      onChange={(e) => handleSaveSettings('creditCard', { enabled: settings?.creditCard?.enabled, processor: settings?.creditCard?.processor, publicKey: settings?.creditCard?.publicKey, secretKey: e.target.value, webhookUrl: settings?.creditCard?.webhookUrl })}
                       placeholder="sk_live_..."
                     />
                     <Button
@@ -315,7 +315,7 @@ export default function PaymentSettings() {
                 <Input
                   id="webhookUrl"
                   value={settings?.creditCard?.webhookUrl || ""}
-                  onChange={(e) => handleSaveSettings('creditCard', { ...settings?.creditCard, webhookUrl: e.target.value })}
+                  onChange={(e) => handleSaveSettings('creditCard', { enabled: settings?.creditCard?.enabled, processor: settings?.creditCard?.processor, publicKey: settings?.creditCard?.publicKey, secretKey: settings?.creditCard?.secretKey, webhookUrl: e.target.value })}
                   placeholder="https://meusite.com/api/webhooks/payment"
                 />
               </div>
@@ -366,7 +366,7 @@ export default function PaymentSettings() {
               </div>
               <Switch 
                 checked={settings?.applePay?.enabled || false}
-                onCheckedChange={(enabled) => handleSaveSettings('applePay', { ...settings?.applePay, enabled })}
+                onCheckedChange={(enabled) => handleSaveSettings('applePay', { enabled, ...settings?.applePay })}
               />
             </CardHeader>
             <CardContent className="space-y-4">
@@ -376,7 +376,7 @@ export default function PaymentSettings() {
                   <Input
                     id="appleMerchantId"
                     value={settings?.applePay?.merchantId || ""}
-                    onChange={(e) => handleSaveSettings('applePay', { ...settings?.applePay, merchantId: e.target.value })}
+                    onChange={(e) => handleSaveSettings('applePay', { enabled: settings?.applePay?.enabled, merchantId: e.target.value, domainName: settings?.applePay?.domainName })}
                     placeholder="merchant.com.exemplo.loja"
                   />
                 </div>
@@ -385,7 +385,7 @@ export default function PaymentSettings() {
                   <Input
                     id="domainName"
                     value={settings?.applePay?.domainName || ""}
-                    onChange={(e) => handleSaveSettings('applePay', { ...settings?.applePay, domainName: e.target.value })}
+                    onChange={(e) => handleSaveSettings('applePay', { enabled: settings?.applePay?.enabled, merchantId: settings?.applePay?.merchantId, domainName: e.target.value })}
                     placeholder="minhaloja.com"
                   />
                 </div>
@@ -427,7 +427,7 @@ export default function PaymentSettings() {
               </div>
               <Switch 
                 checked={settings?.googlePay?.enabled || false}
-                onCheckedChange={(enabled) => handleSaveSettings('googlePay', { ...settings?.googlePay, enabled })}
+                onCheckedChange={(enabled) => handleSaveSettings('googlePay', { enabled, ...settings?.googlePay })}
               />
             </CardHeader>
             <CardContent className="space-y-4">
@@ -437,7 +437,7 @@ export default function PaymentSettings() {
                   <Input
                     id="googleMerchantId"
                     value={settings?.googlePay?.merchantId || ""}
-                    onChange={(e) => handleSaveSettings('googlePay', { ...settings?.googlePay, merchantId: e.target.value })}
+                    onChange={(e) => handleSaveSettings('googlePay', { enabled: settings?.googlePay?.enabled, merchantId: e.target.value, gatewayMerchantId: settings?.googlePay?.gatewayMerchantId })}
                     placeholder="12345678901234567890"
                   />
                 </div>
@@ -446,7 +446,7 @@ export default function PaymentSettings() {
                   <Input
                     id="gatewayMerchantId"
                     value={settings?.googlePay?.gatewayMerchantId || ""}
-                    onChange={(e) => handleSaveSettings('googlePay', { ...settings?.googlePay, gatewayMerchantId: e.target.value })}
+                    onChange={(e) => handleSaveSettings('googlePay', { enabled: settings?.googlePay?.enabled, merchantId: settings?.googlePay?.merchantId, gatewayMerchantId: e.target.value })}
                     placeholder="gateway_merchant_id"
                   />
                 </div>
