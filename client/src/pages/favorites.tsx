@@ -178,7 +178,7 @@ export default function FavoritesPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
-          <Link href="/">
+          <Link href="/catalog">
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar ao Catálogo
@@ -202,7 +202,7 @@ export default function FavoritesPage() {
             Adicione produtos aos seus favoritos para vê-los aqui
           </p>
           <div className="flex gap-4 justify-center">
-            <Link href="/">
+            <Link href="/catalog">
               <Button>Explorar Produtos</Button>
             </Link>
             <Link href="/cart">
