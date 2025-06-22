@@ -151,6 +151,7 @@ export default function Checkout() {
     },
     onSuccess: (data) => {
       if (paymentMethod === 'pix') {
+        console.log('PIX payment data:', data);
         setPixCode(data.pixCode || "00020126360014BR.GOV.BCB.PIX0114+55119999999990204000053039865802BR5925LOJA EXEMPLO6009SAO PAULO61080540900062070503***6304");
       }
       
