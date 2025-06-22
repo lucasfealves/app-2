@@ -147,8 +147,7 @@ export default function Checkout() {
 
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
-      const response = await apiRequest('POST', '/api/orders', orderData);
-      return response.json();
+      return await apiRequest('POST', '/api/orders', orderData);
     },
     onSuccess: (data) => {
       if (paymentMethod === 'pix') {
