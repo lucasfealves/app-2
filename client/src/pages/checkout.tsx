@@ -170,7 +170,10 @@ export default function Checkout() {
         description: paymentMethod === 'pix' ? "Finalize o pagamento via PIX" : "Processando pagamento...",
       });
       
-      queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
+      // Don't invalidate cart immediately for PIX to prevent UI flash
+      if (paymentMethod !== 'pix') {
+        queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
+      }
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -248,7 +251,8 @@ export default function Checkout() {
 
   const cartItems = cart?.items || [];
   
-  if (cartItems.length === 0) {
+  // Don't show empty cart if we're waiting for PIX payment
+  if (cartItems.length === 0 && !pixCode) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <Navbar />
@@ -354,7 +358,10 @@ export default function Checkout() {
                     Copiar Código PIX
                   </Button>
                   <Button 
-                    onClick={() => setLocation("/orders")}
+                    onClick={() => {
+                      queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
+                      setLocation("/orders");
+                    }}
                     className="w-full bg-blue-600 hover:bg-blue-700"
                   >
                     Ver Meus Pedidos
