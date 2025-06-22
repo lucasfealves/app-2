@@ -484,6 +484,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Cart is empty" });
       }
 
+      // Calculate subtotal first
+      const subtotal = cartItems.reduce((sum, item) => {
+        return sum + (parseFloat(item.product.price) * item.quantity);
+      }, 0);
+
       // Get PIX settings if payment method is PIX
       let pixSettings = null;
       let discount = 0;
@@ -495,11 +500,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           discount = subtotal * (pixSettings.discount / 100);
         }
       }
-
-      // Calculate totals
-      const subtotal = cartItems.reduce((sum, item) => {
-        return sum + (parseFloat(item.product.price) * item.quantity);
-      }, 0);
 
       const shippingCost = shippingMethod?.price || 0;
       const total = subtotal + shippingCost - discount;
