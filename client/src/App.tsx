@@ -43,6 +43,7 @@ function Router() {
           <Route path="/admin" component={Admin} />
           <Route path="/tenant-admin" component={TenantAdmin} />
           <Route path="/store/:slug" component={TenantStore} />
+          <Route path="/tenant/:slug" component={TenantStore} />
         </>
       )}
       <Route component={NotFound} />
