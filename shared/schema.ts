@@ -108,8 +108,8 @@ export const productVariants = pgTable("product_variants", {
 
 export const carts = pgTable("carts", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").references(() => users.id).notNull(),
-  tenantId: text("tenant_id").references(() => tenants.id).notNull(),
+  userId: text("user_id").references(() => users.id).notNull(),
+  tenantId: integer("tenant_id").references(() => tenants.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -125,8 +125,8 @@ export const cartItems = pgTable("cart_items", {
 
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").references(() => users.id).notNull(),
-  tenantId: text("tenant_id").references(() => tenants.id).notNull(),
+  userId: text("user_id").references(() => users.id).notNull(),
+  tenantId: integer("tenant_id").references(() => tenants.id).notNull(),
   orderNumber: varchar("order_number", { length: 100 }).notNull().unique(),
   status: varchar("status", { length: 50 }).default("pending"),
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
