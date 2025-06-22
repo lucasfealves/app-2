@@ -25,8 +25,18 @@ export default function FavoriteButton({
   const { data: favoriteStatus, isLoading } = useQuery({
     queryKey: ['/api/favorites/check', productId],
     queryFn: async () => {
+      const token = localStorage.getItem('token');
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const response = await fetch(`/api/favorites/check/${productId}`, {
         credentials: 'include',
+        headers,
       });
       if (!response.ok) throw new Error('Erro ao verificar favorito');
       const data = await response.json();
@@ -37,10 +47,20 @@ export default function FavoriteButton({
 
   const toggleFavoriteMutation = useMutation({
     mutationFn: async () => {
+      const token = localStorage.getItem('token');
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const method = favoriteStatus ? 'DELETE' : 'POST';
       const response = await fetch(`/api/favorites/${productId}`, {
         method,
         credentials: 'include',
+        headers,
       });
       
       if (!response.ok) {

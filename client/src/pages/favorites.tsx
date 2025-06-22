@@ -39,8 +39,18 @@ export default function FavoritesPage() {
   const { data: favorites = [], isLoading } = useQuery<FavoriteItem[]>({
     queryKey: ['/api/favorites'],
     queryFn: async () => {
+      const token = localStorage.getItem('token');
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const response = await fetch('/api/favorites', {
         credentials: 'include',
+        headers,
       });
       if (!response.ok) {
         throw new Error('Erro ao buscar favoritos');
@@ -52,9 +62,19 @@ export default function FavoritesPage() {
 
   const removeFromFavoritesMutation = useMutation({
     mutationFn: async (productId: number) => {
+      const token = localStorage.getItem('token');
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const response = await fetch(`/api/favorites/${productId}`, {
         method: 'DELETE',
         credentials: 'include',
+        headers,
       });
       if (!response.ok) {
         throw new Error('Erro ao remover dos favoritos');
@@ -79,11 +99,18 @@ export default function FavoritesPage() {
 
   const addToCartMutation = useMutation({
     mutationFn: async (productId: number) => {
+      const token = localStorage.getItem('token');
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const response = await fetch('/api/cart/add', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         credentials: 'include',
         body: JSON.stringify({
           productId,

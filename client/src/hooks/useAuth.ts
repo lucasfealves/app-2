@@ -13,7 +13,25 @@ export function useAuth() {
         throw new Error('No token');
       }
 
-      return apiRequest('GET', '/api/auth/user');
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch('/api/auth/user', {
+        credentials: 'include',
+        headers,
+      });
+      
+      if (!response.ok) {
+        localStorage.removeItem('token');
+        throw new Error('Authentication failed');
+      }
+      
+      return response.json();
     },
   });
 
