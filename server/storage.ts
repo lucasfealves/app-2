@@ -124,6 +124,11 @@ export interface IStorage {
   // User management
   getUsers(filters?: { limit?: number; offset?: number }): Promise<User[]>;
   updateUserStatus(userId: string, isBlocked: boolean): Promise<User | undefined>;
+
+  // Payment settings
+  getPaymentSettings(): Promise<any>;
+  updatePaymentSettings(provider: string, config: any): Promise<any>;
+  testPaymentConnection(provider: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -550,6 +555,113 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return updatedUser;
+  }
+
+  async getPaymentSettings(): Promise<any> {
+    const settings = await db.select().from(paymentSettings);
+    
+    const result = {
+      pix: {
+        enabled: false,
+        pixKey: "",
+        merchantName: "",
+        merchantCity: "",
+        discount: 5.0,
+      },
+      creditCard: {
+        enabled: false,
+        processor: "stripe",
+        publicKey: "",
+        secretKey: "",
+        webhookUrl: "",
+      },
+      applePay: {
+        enabled: false,
+        merchantId: "",
+        domainName: "",
+      },
+      googlePay: {
+        enabled: false,
+        merchantId: "",
+        gatewayMerchantId: "",
+      },
+    };
+
+    settings.forEach((setting) => {
+      if (result[setting.provider as keyof typeof result]) {
+        result[setting.provider as keyof typeof result] = {
+          ...result[setting.provider as keyof typeof result],
+          enabled: setting.enabled,
+          ...(setting.config as any),
+        };
+      }
+    });
+
+    return result;
+  }
+
+  async updatePaymentSettings(provider: string, config: any): Promise<any> {
+    const { enabled, ...providerConfig } = config;
+    
+    const [result] = await db
+      .insert(paymentSettings)
+      .values({
+        provider,
+        enabled,
+        config: providerConfig,
+      })
+      .onConflictDoUpdate({
+        target: paymentSettings.provider,
+        set: {
+          enabled,
+          config: providerConfig,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+
+    return result;
+  }
+
+  async testPaymentConnection(provider: string): Promise<boolean> {
+    const settings = await db
+      .select()
+      .from(paymentSettings)
+      .where(eq(paymentSettings.provider, provider))
+      .limit(1);
+
+    if (settings.length === 0) {
+      throw new Error(`Configuração não encontrada para ${provider}`);
+    }
+
+    const config = settings[0].config as any;
+
+    switch (provider) {
+      case 'credit-card':
+        if (!config.publicKey || !config.secretKey) {
+          throw new Error('Chaves de API não configuradas');
+        }
+        break;
+      case 'pix':
+        if (!config.pixKey || !config.merchantName) {
+          throw new Error('Dados PIX não configurados');
+        }
+        break;
+      case 'apple-pay':
+        if (!config.merchantId || !config.domainName) {
+          throw new Error('Configuração Apple Pay incompleta');
+        }
+        break;
+      case 'google-pay':
+        if (!config.merchantId || !config.gatewayMerchantId) {
+          throw new Error('Configuração Google Pay incompleta');
+        }
+        break;
+      default:
+        throw new Error(`Provider ${provider} não suportado`);
+    }
+
+    return true;
   }
 }
 

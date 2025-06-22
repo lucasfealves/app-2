@@ -684,6 +684,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Payment Settings Routes
+  app.get('/api/admin/payment-settings', isAuthenticated, async (req, res) => {
+    try {
+      const settings = await storage.getPaymentSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching payment settings:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.put('/api/admin/payment-settings', isAuthenticated, async (req, res) => {
+    try {
+      const { provider, ...config } = req.body;
+      if (!provider) {
+        return res.status(400).json({ message: "Provider é obrigatório" });
+      }
+      
+      const result = await storage.updatePaymentSettings(provider, config);
+      res.json(result);
+    } catch (error) {
+      console.error("Error updating payment settings:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post('/api/admin/payment-settings/:provider/test', isAuthenticated, async (req, res) => {
+    try {
+      const { provider } = req.params;
+      const result = await storage.testPaymentConnection(provider);
+      res.json({ success: result });
+    } catch (error) {
+      console.error("Error testing payment connection:", error);
+      res.status(400).json({ message: error.message || "Erro ao testar conexão" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
