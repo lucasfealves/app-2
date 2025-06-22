@@ -4,27 +4,9 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated, hashPassword, comparePassword, generateToken } from "./auth";
 import { insertProductSchema, insertCategorySchema, insertBrandSchema, registerSchema, loginSchema } from "@shared/schema";
 import { z } from "zod";
+import * as pixUtils from "pix-utils";
 
-// CRC16 calculation for PIX codes
-function calculateCRC16(payload: string): number {
-  const polynomial = 0x1021;
-  let crc = 0xFFFF;
-  
-  for (let i = 0; i < payload.length; i++) {
-    crc ^= (payload.charCodeAt(i) << 8);
-    for (let j = 0; j < 8; j++) {
-      if (crc & 0x8000) {
-        crc = (crc << 1) ^ polynomial;
-      } else {
-        crc = crc << 1;
-      }
-    }
-  }
-  
-  return crc & 0xFFFF;
-}
-
-// PIX code generation function
+// PIX code generation function using pix-utils library
 function generatePixCode(params: {
   pixKey: string;
   merchantName: string;
@@ -36,42 +18,99 @@ function generatePixCode(params: {
   
   console.log('Generating PIX code with params:', params);
   
-  // Clean and validate inputs
+  try {
+    const pixCode = pixUtils.createStaticPix({
+      merchantName: merchantName.trim().substring(0, 25),
+      merchantCity: merchantCity.trim().substring(0, 15),
+      pixKey: pixKey.trim(),
+      infoAdicional: `Pedido ${orderId}`,
+      transactionAmount: amount
+    });
+    
+    console.log('Generated PIX code:', pixCode);
+    console.log('PIX code length:', pixCode.length);
+    
+    return pixCode;
+  } catch (error) {
+    console.error('Error generating PIX code:', error);
+    // Fallback to manual generation if library fails
+    return generateManualPixCode(params);
+  }
+}
+
+// Fallback manual PIX code generation
+function generateManualPixCode(params: {
+  pixKey: string;
+  merchantName: string;
+  merchantCity: string;
+  amount: number;
+  orderId: string;
+}): string {
+  const { pixKey, merchantName, merchantCity, amount, orderId } = params;
+  
+  // Build proper EMV PIX code
   const cleanPixKey = pixKey.trim();
-  const cleanMerchantName = merchantName.trim().substring(0, 25); // Max 25 chars
-  const cleanMerchantCity = merchantCity.trim().substring(0, 15); // Max 15 chars
+  const cleanMerchantName = merchantName.trim().substring(0, 25);
+  const cleanMerchantCity = merchantCity.trim().substring(0, 15);
   const amountStr = amount.toFixed(2);
   
-  // Build EMV components
-  const pixKeyField = `01${cleanPixKey.length.toString().padStart(2, '0')}${cleanPixKey}`;
-  const merchantAccountInfo = `0014BR.GOV.BCB.PIX${pixKeyField}`;
-  const additionalData = `05${orderId.length.toString().padStart(2, '0')}${orderId}`;
+  // EMV format construction
+  let emv = "";
   
-  // Build complete payload
-  const components = [
-    "000201", // Payload Format Indicator
-    "010212", // Point of Initiation Method (dynamic)
-    `26${merchantAccountInfo.length.toString().padStart(2, '0')}${merchantAccountInfo}`, // Merchant Account Information
-    "52040000", // Merchant Category Code (0000 = not specified)
-    "5303986", // Transaction Currency (986 = BRL)
-    `54${amountStr.length.toString().padStart(2, '0')}${amountStr}`, // Transaction Amount
-    "5802BR", // Country Code
-    `59${cleanMerchantName.length.toString().padStart(2, '0')}${cleanMerchantName}`, // Merchant Name
-    `60${cleanMerchantCity.length.toString().padStart(2, '0')}${cleanMerchantCity}`, // Merchant City
-    `62${additionalData.length.toString().padStart(2, '0')}${additionalData}`, // Additional Data Field Template
-    "6304" // CRC placeholder
-  ];
+  // Payload Format Indicator
+  emv += "000201";
   
-  const payload = components.join("");
+  // Point of Initiation Method
+  emv += "010212";
   
-  // Calculate CRC16 checksum
-  const crc = calculateCRC16(payload).toString(16).toUpperCase().padStart(4, '0');
-  const finalPixCode = payload + crc;
+  // Merchant Account Information
+  const pixKeyData = `01${cleanPixKey.length.toString().padStart(2, '0')}${cleanPixKey}`;
+  const merchantAccount = `0014BR.GOV.BCB.PIX${pixKeyData}`;
+  emv += `26${merchantAccount.length.toString().padStart(2, '0')}${merchantAccount}`;
   
-  console.log('Generated PIX code:', finalPixCode);
-  console.log('PIX code length:', finalPixCode.length);
+  // Merchant Category Code
+  emv += "52040000";
   
-  return finalPixCode;
+  // Transaction Currency
+  emv += "5303986";
+  
+  // Transaction Amount
+  emv += `54${amountStr.length.toString().padStart(2, '0')}${amountStr}`;
+  
+  // Country Code
+  emv += "5802BR";
+  
+  // Merchant Name
+  emv += `59${cleanMerchantName.length.toString().padStart(2, '0')}${cleanMerchantName}`;
+  
+  // Merchant City
+  emv += `60${cleanMerchantCity.length.toString().padStart(2, '0')}${cleanMerchantCity}`;
+  
+  // Additional Data Field
+  const txId = `05${orderId.length.toString().padStart(2, '0')}${orderId}`;
+  emv += `62${txId.length.toString().padStart(2, '0')}${txId}`;
+  
+  // CRC
+  emv += "6304";
+  const crc = calculateCRC16(emv).toString(16).toUpperCase().padStart(4, '0');
+  
+  return emv + crc;
+}
+
+// CRC16 calculation
+function calculateCRC16(payload: string): number {
+  let crc = 0xFFFF;
+  for (let i = 0; i < payload.length; i++) {
+    crc ^= (payload.charCodeAt(i) << 8);
+    for (let j = 0; j < 8; j++) {
+      if (crc & 0x8000) {
+        crc = (crc << 1) ^ 0x1021;
+      } else {
+        crc = crc << 1;
+      }
+    }
+  }
+  return crc & 0xFFFF;
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
