@@ -28,22 +28,44 @@ export default function OrdersTable() {
 
   const updateOrderStatusMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: number; status: string }) => {
-      return apiRequest(`/api/orders/${orderId}/status`, {
+      const token = localStorage.getItem('token');
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`/api/orders/${orderId}/status`, {
         method: 'PUT',
+        headers,
+        credentials: 'include',
         body: JSON.stringify({ status })
       });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao atualizar status');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
         title: "Status atualizado",
         description: "Status do pedido atualizado com sucesso",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/orders?${new URLSearchParams({
+        ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
+        page: page.toString(),
+        limit: limit.toString()
+      }).toString()}`] });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Erro",
-        description: "Falha ao atualizar status do pedido",
+        description: error.message || "Falha ao atualizar status do pedido",
         variant: "destructive",
       });
     },
