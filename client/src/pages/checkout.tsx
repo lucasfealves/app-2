@@ -150,9 +150,19 @@ export default function Checkout() {
       return await apiRequest('POST', '/api/orders', orderData);
     },
     onSuccess: (data) => {
+      console.log('Order created successfully:', data);
+      console.log('Payment method:', paymentMethod);
+      
       if (paymentMethod === 'pix') {
-        console.log('PIX payment data:', data);
-        setPixCode(data.pixCode || "00020126360014BR.GOV.BCB.PIX0114+55119999999990204000053039865802BR5925LOJA EXEMPLO6009SAO PAULO61080540900062070503***6304");
+        console.log('Setting PIX code:', data.pixCode);
+        const code = data.pixCode || "00020126360014BR.GOV.BCB.PIX0114+55119999999990204000053039865802BR5925LOJA EXEMPLO6009SAO PAULO61080540900062070503***6304";
+        setPixCode(code);
+        console.log('PIX code set to:', code);
+      } else {
+        // For non-PIX payments, redirect to orders
+        setTimeout(() => {
+          setLocation("/orders");
+        }, 2000);
       }
       
       toast({
@@ -161,12 +171,6 @@ export default function Checkout() {
       });
       
       queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
-      
-      if (paymentMethod !== 'pix') {
-        setTimeout(() => {
-          setLocation("/orders");
-        }, 2000);
-      }
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
