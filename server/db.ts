@@ -1,20 +1,10 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
+// Import both drivers
+import { Pool as PgPool } from 'pg';
+import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres';
+import { Pool as NeonPool, neonConfig } from '@neondatabase/serverless';
+import { drizzle as drizzleNeon } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
-
-// Configure neon for serverless/development
-neonConfig.webSocketConstructor = ws;
-
-// For local development, disable WebSocket to avoid connection issues
-if (!process.env.REPL_ID && process.env.NODE_ENV === 'development') {
-  neonConfig.useSecureWebSocket = false;
-  neonConfig.pipelineConnect = false;
-  neonConfig.pipelineTLS = false;
-} else {
-  neonConfig.useSecureWebSocket = true;
-  neonConfig.pipelineConnect = false;
-}
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -22,11 +12,34 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
-  max: 5,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-});
+// Initialize database connection based on environment
+function initializeDatabase() {
+  if (!process.env.REPL_ID && process.env.NODE_ENV === 'development') {
+    // Local development - use native pg driver
+    console.log('Using native PostgreSQL driver for local development');
+    const pool = new PgPool({ 
+      connectionString: process.env.DATABASE_URL,
+      max: 5,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    });
+    return { pool, db: drizzlePg(pool, { schema }) };
+  } else {
+    // Replit/Production - use Neon serverless
+    console.log('Using Neon serverless driver for production');
+    neonConfig.webSocketConstructor = ws;
+    neonConfig.useSecureWebSocket = true;
+    neonConfig.pipelineConnect = false;
 
-export const db = drizzle({ client: pool, schema });
+    const pool = new NeonPool({ 
+      connectionString: process.env.DATABASE_URL,
+      max: 5,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    });
+    return { pool, db: drizzleNeon({ client: pool, schema }) };
+  }
+}
+
+const { pool, db } = initializeDatabase();
+export { pool, db };

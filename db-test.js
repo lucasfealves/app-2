@@ -1,21 +1,4 @@
 // Script para testar conexão com banco de dados
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import ws from "ws";
-
-// Configure neon
-neonConfig.webSocketConstructor = ws;
-
-// For local development, disable WebSocket
-if (!process.env.REPL_ID && process.env.NODE_ENV === 'development') {
-  console.log('Configurando para desenvolvimento local (sem WebSocket)');
-  neonConfig.useSecureWebSocket = false;
-  neonConfig.pipelineConnect = false;
-  neonConfig.pipelineTLS = false;
-} else {
-  console.log('Configurando para produção/Replit (com WebSocket)');
-  neonConfig.useSecureWebSocket = true;
-  neonConfig.pipelineConnect = false;
-}
 
 if (!process.env.DATABASE_URL) {
   console.error('❌ DATABASE_URL não está definida');
@@ -25,7 +8,31 @@ if (!process.env.DATABASE_URL) {
 console.log('🔗 Testando conexão com banco de dados...');
 console.log('URL:', process.env.DATABASE_URL.substring(0, 30) + '...');
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+let pool;
+
+if (!process.env.REPL_ID && process.env.NODE_ENV === 'development') {
+  console.log('🔧 Configurando para desenvolvimento local (driver nativo PostgreSQL)');
+  const { Pool } = await import('pg');
+  pool = new Pool({ connectionString: process.env.DATABASE_URL });
+} else {
+  console.log('☁️ Configurando para produção/Replit (Neon serverless)');
+  const { Pool, neonConfig } = await import('@neondatabase/serverless');
+  const ws = await import('ws');
+  
+  neonConfig.webSocketConstructor = ws.default;
+  neonConfig.useSecureWebSocket = true;
+  neonConfig.pipelineConnect = false;
+  
+  pool = new Pool({ connectionString: process.env.DATABASE_URL });
+}
+
+if (!process.env.DATABASE_URL) {
+  console.error('❌ DATABASE_URL não está definida');
+  process.exit(1);
+}
+
+console.log('🔗 Testando conexão com banco de dados...');
+console.log('URL:', process.env.DATABASE_URL.substring(0, 30) + '...');
 
 try {
   const result = await pool.query('SELECT NOW() as current_time, version() as version');
