@@ -22,18 +22,48 @@ export default function Catalog() {
     limit: 20
   });
 
-  // Extract search parameters from URL
+  // Monitor URL changes and extract search parameters
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const searchParam = params.get('search');
-    
-    if (searchParam) {
+    const updateFiltersFromURL = () => {
+      const params = new URLSearchParams(window.location.search);
+      const searchParam = params.get('search');
+      
       setFilters(prev => ({
         ...prev,
-        search: searchParam
+        search: searchParam || ""
       }));
-    }
-  }, [location]);
+    };
+
+    // Initial load
+    updateFiltersFromURL();
+
+    // Listen for URL changes
+    const handlePopState = () => {
+      updateFiltersFromURL();
+    };
+
+    // Listen for programmatic navigation
+    const originalPushState = window.history.pushState;
+    const originalReplaceState = window.history.replaceState;
+
+    window.history.pushState = function(...args) {
+      originalPushState.apply(window.history, args);
+      setTimeout(updateFiltersFromURL, 0);
+    };
+
+    window.history.replaceState = function(...args) {
+      originalReplaceState.apply(window.history, args);
+      setTimeout(updateFiltersFromURL, 0);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.history.pushState = originalPushState;
+      window.history.replaceState = originalReplaceState;
+    };
+  }, []);
 
   const { data: products, isLoading, error } = useQuery({
     queryKey: ['/api/products', filters],
