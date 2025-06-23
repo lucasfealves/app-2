@@ -103,7 +103,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Discount Badge */}
         {discountPercentage > 0 && (
           <div className="absolute top-3 left-3">
-            <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 font-semibold px-2 py-1 text-xs">
+            <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-primary-foreground border-0 font-semibold px-2 py-1 text-xs">
               -{discountPercentage}%
             </Badge>
           </div>

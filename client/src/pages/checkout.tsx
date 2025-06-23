@@ -313,11 +313,11 @@ export default function Checkout() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <Navbar />
         <div className="container mx-auto px-4 py-8 text-center">
-          <div className="bg-white rounded-2xl material-shadow-1 p-12 max-w-md mx-auto">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Carrinho vazio</h1>
-            <p className="text-gray-600 mb-6">Adicione produtos antes de finalizar a compra.</p>
+          <div className="bg-card rounded-2xl material-shadow-1 p-12 max-w-md mx-auto">
+            <h1 className="text-2xl font-bold text-card-foreground mb-4">Carrinho vazio</h1>
+            <p className="text-muted-foreground mb-6">Adicione produtos antes de finalizar a compra.</p>
             <Link href="/catalog">
-              <Button className="bg-blue-600 hover:bg-blue-700">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Continuar Comprando
               </Button>
@@ -638,7 +638,7 @@ export default function Checkout() {
                           />
                         </div>
 
-                        <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
+                        <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                           Continuar para Frete
                         </Button>
                       </form>

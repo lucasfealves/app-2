@@ -117,7 +117,7 @@ export default function Orders() {
               <p className="text-gray-600 mb-6">
                 Você ainda não fez nenhum pedido
               </p>
-              <Button className="bg-blue-600 hover:bg-blue-700">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 Ir para Catálogo
               </Button>
             </CardContent>
@@ -165,7 +165,7 @@ export default function Orders() {
                           </Button>
                         </Link>
                         {order.status === 'delivered' && (
-                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                          <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                             Comprar Novamente
                           </Button>
                         )}

@@ -51,7 +51,7 @@ export default function OrderDetail() {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
       case 'processing':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary/10 text-primary';
       case 'shipped':
         return 'bg-purple-100 text-purple-800';
       case 'delivered':
@@ -225,8 +225,8 @@ export default function OrderDetail() {
                       </div>
                     )}
                     {order.paymentMethod === 'credit' && (
-                      <div className="bg-blue-100 rounded-full p-2">
-                        <CreditCard className="h-4 w-4 text-blue-600" />
+                      <div className="bg-primary/10 rounded-full p-2">
+                        <CreditCard className="h-4 w-4 text-primary" />
                       </div>
                     )}
                     <div>

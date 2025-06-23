@@ -160,7 +160,7 @@ export default function Cart() {
                 Adicione produtos ao seu carrinho para continuar
               </p>
               <Link href="/catalog">
-                <Button className="bg-blue-600 hover:bg-blue-700">
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
                   Continuar Comprando
                 </Button>
               </Link>
@@ -194,7 +194,7 @@ export default function Cart() {
               <OrderSummary items={cartItems} />
               <div className="mt-6 space-y-3">
                 <Link href="/checkout">
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-3">
+                  <Button className="w-full bg-primary hover:bg-primary/90 text-lg py-3">
                     Finalizar Compra
                   </Button>
                 </Link>

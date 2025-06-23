@@ -236,7 +236,7 @@ export default function FavoritesPage() {
                 </div>
 
                 <Link href={`/product/${favorite.product.slug}`}>
-                  <h3 className="font-semibold text-lg mb-2 hover:text-blue-600 transition-colors line-clamp-2">
+                  <h3 className="font-semibold text-lg mb-2 hover:text-primary transition-colors line-clamp-2">
                     {favorite.product.name}
                   </h3>
                 </Link>

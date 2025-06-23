@@ -29,7 +29,7 @@ export default function Home() {
           <Link href="/catalog">
             <Button 
               size="lg" 
-              className="text-white"
+              className="text-primary-foreground"
               style={{ 
                 backgroundColor: siteSettings?.primaryColor || '#2563eb',
                 borderColor: siteSettings?.primaryColor || '#2563eb'
@@ -56,7 +56,7 @@ export default function Home() {
           <Card className="cursor-pointer hover:material-shadow-2 transition-shadow">
             <Link href="/catalog">
               <CardHeader className="text-center">
-                <Package className="h-12 w-12 text-blue-600 mx-auto mb-2" />
+                <Package className="h-12 w-12 text-primary mx-auto mb-2" />
                 <CardTitle className="text-lg">Navegar Produtos</CardTitle>
               </CardHeader>
               <CardContent>
@@ -152,7 +152,7 @@ export default function Home() {
             const icons = [Truck, Shield, Heart];
             const Icon = icons[index];
             const colors = [
-              { bg: 'bg-blue-100', text: 'text-blue-600' },
+              { bg: 'bg-primary/10', text: 'text-primary' },
               { bg: 'bg-green-100', text: 'text-green-600' },
               { bg: 'bg-purple-100', text: 'text-purple-600' }
             ];
@@ -175,7 +175,7 @@ export default function Home() {
 
         {/* Special Offers */}
         <div 
-          className="rounded-lg p-8 text-white text-center"
+          className="rounded-lg p-8 text-primary-foreground text-center"
           style={{ 
             background: `linear-gradient(to right, ${siteSettings?.primaryColor || '#2563eb'}, ${siteSettings?.secondaryColor || '#7c3aed'})` 
           }}

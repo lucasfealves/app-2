@@ -52,7 +52,7 @@ export default function UsersTable() {
   };
 
   const getRandomColor = (id: string) => {
-    const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-yellow-500', 'bg-red-500'];
+    const colors = ['bg-primary/50', 'bg-green-500', 'bg-purple-500', 'bg-yellow-500', 'bg-red-500'];
     const index = parseInt(id) % colors.length;
     return colors[index];
   };
@@ -101,7 +101,7 @@ export default function UsersTable() {
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle className="text-xl">Gerenciar Usuários</CardTitle>
-          <Button className="bg-blue-600 hover:bg-blue-700">
+          <Button className="bg-primary hover:bg-primary/90">
             <UserPlus className="mr-2 h-4 w-4" />
             Novo Usuário
           </Button>
@@ -126,7 +126,7 @@ export default function UsersTable() {
                   <TableRow key={user.id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 ${getRandomColor(user.id)} rounded-full flex items-center justify-center text-white font-medium`}>
+                        <div className={`w-10 h-10 ${getRandomColor(user.id)} rounded-full flex items-center justify-center text-primary-foreground font-medium`}>
                           {user.profileImageUrl ? (
                             <img 
                               src={user.profileImageUrl} 
@@ -151,7 +151,7 @@ export default function UsersTable() {
                     <TableCell>
                       <Badge 
                         className={user.isAdmin 
-                          ? 'bg-blue-100 text-blue-800' 
+                          ? 'bg-primary/10 text-primary' 
                           : 'bg-gray-100 text-gray-800'
                         }
                       >
@@ -189,7 +189,7 @@ export default function UsersTable() {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="h-8 w-8 text-blue-600"
+                          className="h-8 w-8 text-primary"
                           title="Promover/Rebaixar admin"
                         >
                           <Shield className="h-4 w-4" />

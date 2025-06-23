@@ -91,8 +91,8 @@ export default function Admin() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center">
-            <div className="bg-blue-100 p-3 rounded-xl mr-4">
-              <Shield className="h-8 w-8 text-blue-600" />
+            <div className="bg-primary/10 p-3 rounded-xl mr-4">
+              <Shield className="h-8 w-8 text-primary" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
@@ -108,7 +108,7 @@ export default function Admin() {
               <Download className="h-4 w-4 mr-2" />
               Exportar
             </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
               <Plus className="h-4 w-4 mr-2" />
               Novo Produto
             </Button>
@@ -123,63 +123,63 @@ export default function Admin() {
           <TabsList className="grid w-full grid-cols-9 bg-white rounded-xl p-1 material-shadow-1">
             <TabsTrigger
               value="overview"
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <BarChart3 className="h-4 w-4 mr-2" />
               Dashboard
             </TabsTrigger>
             <TabsTrigger
               value="products"
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Package className="h-4 w-4 mr-2" />
               Produtos
             </TabsTrigger>
             <TabsTrigger
               value="categories"
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Package className="h-4 w-4 mr-2" />
               Categorias
             </TabsTrigger>
             <TabsTrigger
               value="orders"
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <ShoppingCart className="h-4 w-4 mr-2" />
               Pedidos
             </TabsTrigger>
             <TabsTrigger
               value="users"
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Users className="h-4 w-4 mr-2" />
               Usuários
             </TabsTrigger>
             <TabsTrigger
               value="payments"
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <CreditCard className="h-4 w-4 mr-2" />
               Pagamentos
             </TabsTrigger>
             <TabsTrigger
               value="analytics"
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <BarChart3 className="h-4 w-4 mr-2" />
               Análises
             </TabsTrigger>
             <TabsTrigger
               value="settings"
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Shield className="h-4 w-4 mr-2" />
               Config. Pag.
             </TabsTrigger>
             <TabsTrigger
               value="site-settings"
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Package className="h-4 w-4 mr-2" />
               Site

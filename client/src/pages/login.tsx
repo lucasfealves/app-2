@@ -79,7 +79,7 @@ export default function Login() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <ShoppingCart className="h-12 w-12 text-blue-600 mr-3" />
+            <ShoppingCart className="h-12 w-12 text-primary mr-3" />
             <h1 className="text-3xl font-bold text-gray-900">E-Commerce</h1>
           </div>
           <p className="text-gray-600">Faça login em sua conta</p>
@@ -159,7 +159,7 @@ export default function Login() {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Não tem uma conta?{" "}
-                <Link href="/register" className="text-blue-600 hover:underline">
+                <Link href="/register" className="text-primary hover:underline">
                   Registre-se
                 </Link>
               </p>

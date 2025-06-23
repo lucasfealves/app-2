@@ -36,7 +36,7 @@ export default function AdminOrderDetail() {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
       case 'processing':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary/10 text-primary';
       case 'shipped':
         return 'bg-purple-100 text-purple-800';
       case 'delivered':
@@ -312,7 +312,7 @@ export default function AdminOrderDetail() {
             <CardContent>
               <div className="space-y-3">
                 <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
                   <span className="text-sm">Pedido criado</span>
                   <span className="text-xs text-gray-500 ml-auto">
                     {new Date(order.createdAt).toLocaleDateString('pt-BR')}

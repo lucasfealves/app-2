@@ -190,7 +190,7 @@ export default function ProductDetail() {
               {/* Badges */}
               <div className="absolute top-4 left-4 flex flex-col space-y-2">
                 {discountPercentage > 0 && (
-                  <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 font-semibold">
+                  <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-primary-foreground border-0 font-semibold">
                     -{discountPercentage}%
                   </Badge>
                 )}

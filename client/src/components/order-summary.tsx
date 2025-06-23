@@ -110,7 +110,7 @@ export default function OrderSummary({ items }: OrderSummaryProps) {
         {/* Total */}
         <div className="flex justify-between items-center">
           <span className="text-lg font-medium text-gray-900">Total</span>
-          <span className="text-2xl font-bold text-blue-600">
+          <span className="text-2xl font-bold text-primary">
             R$ {total.toFixed(2)}
           </span>
         </div>

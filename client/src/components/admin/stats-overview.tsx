@@ -44,7 +44,7 @@ export default function StatsOverview() {
     {
       title: "Total de Produtos",
       value: stats?.totalProducts || 0,
-      icon: <Package className="h-4 w-4 text-blue-600" />,
+      icon: <Package className="h-4 w-4 text-primary" />,
       description: "Produtos ativos no catálogo"
     },
     {

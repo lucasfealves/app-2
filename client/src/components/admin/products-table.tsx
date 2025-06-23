@@ -95,7 +95,7 @@ export default function ProductsTable() {
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle className="text-xl">Gerenciar Produtos</CardTitle>
-          <Button className="bg-blue-600 hover:bg-blue-700">
+          <Button className="bg-primary hover:bg-primary/90">
             <Plus className="mr-2 h-4 w-4" />
             Novo Produto
           </Button>

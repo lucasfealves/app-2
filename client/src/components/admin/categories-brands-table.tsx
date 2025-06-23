@@ -262,7 +262,7 @@ export default function CategoriesBrandsTable() {
           <CardTitle className="text-xl">Gerenciar Categorias e Marcas</CardTitle>
           <FormDialog>
             <Button 
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-primary hover:bg-primary/90"
               onClick={() => setIsAddDialogOpen(true)}
             >
               <Plus className="mr-2 h-4 w-4" />

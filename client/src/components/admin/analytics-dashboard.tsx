@@ -46,7 +46,7 @@ export default function AnalyticsDashboard() {
             )}
           </div>
           <div className={`p-3 rounded-xl ${color}`}>
-            <Icon className="h-6 w-6 text-white" />
+            <Icon className="h-6 w-6 text-primary-foreground" />
           </div>
         </div>
       </CardContent>
@@ -56,8 +56,8 @@ export default function AnalyticsDashboard() {
   const TopProductCard = ({ product, rank }) => (
     <div className="flex items-center justify-between p-4 bg-white rounded-lg border hover:shadow-md transition-shadow">
       <div className="flex items-center space-x-4">
-        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-          <span className="text-sm font-bold text-blue-600">#{rank}</span>
+        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+          <span className="text-sm font-bold text-primary">#{rank}</span>
         </div>
         <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
           {product.imageUrl ? (
@@ -163,7 +163,7 @@ export default function AnalyticsDashboard() {
           change={analytics?.ordersChange || '+0%'}
           changeType={analytics?.ordersChangeType || 'positive'}
           icon={ShoppingCart}
-          color="bg-blue-500"
+          color="bg-primary/50"
         />
         <StatCard
           title="Novos Clientes"
@@ -230,7 +230,7 @@ export default function AnalyticsDashboard() {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div 
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                          className="bg-primary h-2 rounded-full transition-all duration-300"
                           style={{ width: `${percentage}%` }}
                         />
                       </div>
@@ -255,7 +255,7 @@ export default function AnalyticsDashboard() {
             <CardTitle className="text-lg">Taxa de Conversão</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-600">
+            <div className="text-3xl font-bold text-primary">
               {analytics?.conversionRate || '0'}%
             </div>
             <p className="text-sm text-gray-600 mt-1">
