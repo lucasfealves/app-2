@@ -4,25 +4,25 @@ import { ShoppingCart, Star, Truck, Shield, CreditCard } from "lucide-react";
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10">
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16">
         <div className="text-center">
           <div className="flex items-center justify-center mb-6">
-            <ShoppingCart className="h-12 w-12 text-blue-600 mr-3" />
-            <h1 className="text-4xl font-bold text-gray-900">E-Commerce</h1>
+            <ShoppingCart className="h-12 w-12 text-primary mr-3" />
+            <h1 className="text-4xl font-bold text-foreground">E-Commerce</h1>
           </div>
-          <h2 className="text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-5xl font-bold text-foreground mb-6">
             Sua loja online completa
           </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             Descubra uma experiência de compra excepcional com os melhores produtos, 
             preços competitivos e entrega rápida.
           </p>
           <div className="space-x-4">
             <Button 
               size="lg" 
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg"
               onClick={() => window.location.href = "/login"}
             >
               Entrar
@@ -41,7 +41,7 @@ export default function Landing() {
 
       {/* Features Section */}
       <div className="container mx-auto px-4 py-16">
-        <h3 className="text-3xl font-bold text-center text-gray-900 mb-12">
+        <h3 className="text-3xl font-bold text-center text-foreground mb-12">
           Por que escolher nossa plataforma?
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -71,7 +71,7 @@ export default function Landing() {
 
           <Card className="text-center material-shadow-1 hover:material-shadow-2 transition-shadow">
             <CardHeader>
-              <Shield className="h-12 w-12 text-blue-500 mx-auto mb-4" />
+              <Shield className="h-12 w-12 text-primary mx-auto mb-4" />
               <CardTitle>Compra Segura</CardTitle>
             </CardHeader>
             <CardContent>
@@ -96,7 +96,7 @@ export default function Landing() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-blue-600 text-white py-16">
+      <div className="bg-primary text-primary-foreground py-16">
         <div className="container mx-auto px-4 text-center">
           <h3 className="text-3xl font-bold mb-4">
             Pronto para começar?
@@ -107,7 +107,7 @@ export default function Landing() {
           <Button 
             size="lg" 
             variant="secondary"
-            className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg"
+            className="bg-background text-primary hover:bg-muted px-8 py-3 text-lg"
             onClick={() => window.location.href = "/api/login"}
           >
             Criar conta agora

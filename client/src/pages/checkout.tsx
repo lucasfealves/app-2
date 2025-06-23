@@ -447,7 +447,7 @@ export default function Checkout() {
                       queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
                       setLocation("/orders");
                     }}
-                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     Ver Meus Pedidos
                   </Button>
@@ -483,15 +483,15 @@ export default function Checkout() {
         {/* Progress Steps */}
         <div className="mb-8">
           <div className="flex items-center justify-center space-x-4 mb-4">
-            <div className={`flex items-center space-x-2 ${orderStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${orderStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
+            <div className={`flex items-center space-x-2 ${orderStep >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${orderStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                 {orderStep > 1 ? <Check className="h-4 w-4" /> : '1'}
               </div>
               <span className="text-sm font-medium">Entrega</span>
             </div>
-            <div className={`w-12 h-0.5 ${orderStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`} />
-            <div className={`flex items-center space-x-2 ${orderStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${orderStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
+            <div className={`w-12 h-0.5 ${orderStep >= 2 ? 'bg-primary' : 'bg-muted'}`} />
+            <div className={`flex items-center space-x-2 ${orderStep >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${orderStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                 {orderStep > 2 ? <Check className="h-4 w-4" /> : '2'}
               </div>
               <span className="text-sm font-medium">Pagamento</span>
@@ -659,7 +659,7 @@ export default function Checkout() {
                       <RadioGroup value={shippingMethod} onValueChange={setShippingMethod}>
                         <div className="space-y-3">
                           {shippingOptions.map((option) => (
-                            <div key={option.id} className="flex items-center space-x-3 p-4 border rounded-xl hover:bg-blue-50 transition-colors">
+                            <div key={option.id} className="flex items-center space-x-3 p-4 border rounded-xl hover:bg-primary/5 transition-colors">
                               <RadioGroupItem value={option.id} id={option.id} />
                               <div className="flex items-center justify-between w-full">
                                 <div className="flex items-center space-x-3">
@@ -683,7 +683,7 @@ export default function Checkout() {
                       
                       <Button 
                         onClick={() => setOrderStep(2)}
-                        className="w-full mt-4 bg-blue-600 hover:bg-blue-700"
+                        className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground"
                         disabled={!shippingMethod}
                       >
                         Continuar para Pagamento
@@ -720,7 +720,7 @@ export default function Checkout() {
                       <div className="space-y-4">
                         {paymentOptions.map((option) => (
                           <div key={option.id} className="border rounded-xl overflow-hidden">
-                            <div className="flex items-center space-x-3 p-4 hover:bg-blue-50 transition-colors">
+                            <div className="flex items-center space-x-3 p-4 hover:bg-primary/5 transition-colors">
                               <RadioGroupItem value={option.id} id={option.id} />
                               <div className="flex items-center justify-between w-full">
                                 <div className="flex items-center space-x-3">
@@ -929,7 +929,7 @@ export default function Checkout() {
                   <Button 
                     onClick={onPaymentSubmit}
                     disabled={createOrderMutation.isPending || (paymentMethod === 'credit' && !creditCardForm.formState.isValid)}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     {createOrderMutation.isPending ? "Processando..." : "Finalizar Pedido"}
                   </Button>
