@@ -19,6 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { useCep } from "@/hooks/useCep";
 import { 
   CreditCard, 
   Smartphone, 
@@ -31,7 +32,8 @@ import {
   ArrowLeft,
   QrCode,
   Zap,
-  Shield
+  Shield,
+  Search
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
@@ -56,6 +58,7 @@ const creditCardSchema = z.object({
 export default function Checkout() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
+  const { searchCep, isLoading: cepLoading } = useCep();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const [paymentMethod, setPaymentMethod] = useState("pix");
@@ -537,12 +540,53 @@ export default function Checkout() {
                               <FormItem>
                                 <FormLabel>CEP</FormLabel>
                                 <FormControl>
-                                  <Input 
-                                    placeholder="00000000" 
-                                    maxLength={8}
-                                    {...field} 
-                                    onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ''))}
-                                  />
+                                  <div className="flex gap-2">
+                                    <Input 
+                                      placeholder="00000000" 
+                                      maxLength={8}
+                                      {...field} 
+                                      onChange={async (e) => {
+                                        const cleanValue = e.target.value.replace(/\D/g, '');
+                                        field.onChange(cleanValue);
+                                        
+                                        // Auto-search when CEP is complete
+                                        if (cleanValue.length === 8) {
+                                          const result = await searchCep(cleanValue);
+                                          if (result) {
+                                            shippingForm.setValue('state', result.state);
+                                            shippingForm.setValue('city', result.city);
+                                            shippingForm.setValue('address', result.street);
+                                            shippingForm.setValue('neighborhood', result.neighborhood);
+                                          }
+                                        }
+                                      }}
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={async () => {
+                                        const cep = field.value;
+                                        if (cep.length === 8) {
+                                          const result = await searchCep(cep);
+                                          if (result) {
+                                            shippingForm.setValue('state', result.state);
+                                            shippingForm.setValue('city', result.city);
+                                            shippingForm.setValue('address', result.street);
+                                            shippingForm.setValue('neighborhood', result.neighborhood);
+                                          }
+                                        }
+                                      }}
+                                      disabled={cepLoading || field.value.length !== 8}
+                                      className="shrink-0"
+                                    >
+                                      {cepLoading ? (
+                                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                      ) : (
+                                        <Search className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                  </div>
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
