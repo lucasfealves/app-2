@@ -132,6 +132,7 @@ Abra seu navegador e acesse: `http://localhost:5000`
 - `npm run build` - Gera build de produção
 - `npm run start` - Inicia servidor de produção
 - `npm run db:push` - Aplica mudanças no schema do banco
+- `npx tsx migrate.ts` - Executa migrações manuais (cria tabelas e dados de exemplo)
 - `npm run check` - Verifica tipos TypeScript
 
 ## 🔧 Variáveis de Ambiente

@@ -109,6 +109,7 @@ npm install
 - `node db-test.js` - Testar conexão com banco
 - `npm run dev` - Comando direto
 - `npm run db:push` - Aplicar schema do banco
+- `npx tsx migrate.ts` - Executar migrações manuais com dados de exemplo
 
 ## Configuração Permanente (Windows)
 
