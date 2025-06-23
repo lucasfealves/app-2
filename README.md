@@ -139,8 +139,9 @@ Abra seu navegador e acesse: `http://localhost:5000`
 - `NODE_ENV=development` - Ambiente de execução  
 - `PORT=5000` - Porta do servidor
 
-### Solucionando o erro "getaddrinfo ENOTFOUND base"
+### Solucionando Erros Comuns
 
+#### Erro "getaddrinfo ENOTFOUND base"
 Este erro ocorre quando a `DATABASE_URL` não está configurada ou está inválida. Para resolver:
 
 1. **Verifique se a DATABASE_URL está definida:**
@@ -159,7 +160,10 @@ echo $DATABASE_URL
    - Para PostgreSQL local: `postgresql://usuario:senha@localhost:5432/database`
    - Para Neon: `postgresql://usuario:senha@host.neon.tech/database?sslmode=require`
 
-3. **Use o script de configuração automatizada (Windows):**
+#### Erro "ENOTSUP: operation not supported on socket"
+Este erro ocorre em alguns sistemas que não suportam binding em todas as interfaces. Foi corrigido automaticamente - o servidor agora usa `localhost` para desenvolvimento local e `0.0.0.0` apenas no Replit.
+
+#### Script de configuração automatizada (Windows):
 ```powershell
 ./setup-db.ps1
 ```
@@ -227,9 +231,16 @@ docker-compose up
 
 Se encontrar problemas:
 
-1. Verifique se todas as dependências estão instaladas
-2. Confirme se o PostgreSQL está rodando
-3. Verifique se a variável `DATABASE_URL` está configurada
-4. Execute `npm run db:push` se houver problemas com o banco
+1. Consulte o [Guia de Desenvolvimento Local](DESENVOLVIMENTO-LOCAL.md)
+2. Verifique se todas as dependências estão instaladas
+3. Confirme se o PostgreSQL está rodando
+4. Verifique se a variável `DATABASE_URL` está configurada
+5. Execute `npm run db:push` se houver problemas com o banco
 
 Para mais ajuda, abra uma issue no repositório.
+
+## 📋 Links Úteis
+
+- [Guia Completo de Desenvolvimento Local](DESENVOLVIMENTO-LOCAL.md)
+- [Scripts de Desenvolvimento](README-Scripts.md)
+- [Neon PostgreSQL](https://neon.tech) (recomendado para desenvolvimento)
