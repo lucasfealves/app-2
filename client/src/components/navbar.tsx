@@ -37,7 +37,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-white material-shadow-1 sticky top-0 z-50">
+    <nav className="bg-card material-shadow-1 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -47,7 +47,7 @@ export default function Navbar() {
                 className="h-8 w-8" 
                 style={{ color: siteSettings?.primaryColor || '#2563eb' }}
               />
-              <span className="text-xl font-bold text-gray-900">
+              <span className="text-xl font-bold text-foreground">
                 {siteSettings?.siteName || 'E-Commerce'}
               </span>
             </div>
@@ -56,7 +56,7 @@ export default function Navbar() {
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
             <Link href="/catalog">
-              <Button variant="ghost" className="text-gray-700 hover:text-blue-600">
+              <Button variant="ghost" className="text-foreground hover:text-primary">
                 Catálogo
               </Button>
             </Link>
@@ -72,7 +72,7 @@ export default function Navbar() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </form>
           </div>
 
@@ -83,7 +83,7 @@ export default function Navbar() {
               <Button variant="ghost" size="icon" className="relative">
                 <ShoppingCart className="h-5 w-5" />
                 {cartItemCount > 0 && (
-                  <Badge className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs px-1.5 py-0.5 min-w-[1.25rem] h-5 flex items-center justify-center">
+                  <Badge className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 min-w-[1.25rem] h-5 flex items-center justify-center">
                     {cartItemCount}
                   </Badge>
                 )}
@@ -122,7 +122,7 @@ export default function Navbar() {
                 )}
                 <DropdownMenuItem 
                   onClick={() => logout()}
-                  className="text-red-600"
+                  className="text-destructive"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
                   Sair

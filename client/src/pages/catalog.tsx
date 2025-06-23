@@ -5,7 +5,7 @@ import ProductCard from "@/components/product-card";
 import ProductFilters from "@/components/product-filters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ShoppingCart } from "lucide-react";
 
 export default function Catalog() {
   const [filters, setFilters] = useState({
@@ -57,7 +57,7 @@ export default function Catalog() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       <Navbar />
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -65,15 +65,15 @@ export default function Catalog() {
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
                 Catálogo de Produtos
               </h1>
-              <p className="text-gray-600 text-sm sm:text-base">
+              <p className="text-muted-foreground text-sm sm:text-base">
                 Descubra nossa seleção completa com os melhores preços
               </p>
             </div>
             <div className="mt-4 sm:mt-0 flex items-center space-x-2">
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-muted-foreground">
                 {products ? `${products.length} produtos encontrados` : ''}
               </span>
             </div>
@@ -92,9 +92,9 @@ export default function Catalog() {
 
         {/* Content */}
         {error && (
-          <Alert variant="destructive" className="mb-6 border-red-200 bg-red-50">
-            <AlertCircle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-700">
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
               Erro ao carregar produtos. Verifique sua conexão e tente novamente.
             </AlertDescription>
           </Alert>
@@ -103,7 +103,7 @@ export default function Catalog() {
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl p-4 space-y-4 material-shadow-1">
+              <div key={i} className="bg-card rounded-2xl p-4 space-y-4 material-shadow-1">
                 <Skeleton className="aspect-[4/3] w-full rounded-xl" />
                 <div className="space-y-3">
                   <Skeleton className="h-4 w-3/4" />
@@ -124,14 +124,14 @@ export default function Catalog() {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl material-shadow-1 text-center py-16 px-6">
-            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center">
-              <ShoppingCart className="h-10 w-10 text-blue-600" />
+          <div className="bg-card rounded-2xl material-shadow-1 text-center py-16 px-6">
+            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-primary/10 to-primary/20 rounded-full flex items-center justify-center">
+              <ShoppingCart className="h-10 w-10 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <h3 className="text-xl font-semibold text-card-foreground mb-2">
               Nenhum produto encontrado
             </h3>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               Não encontramos produtos que correspondam aos seus filtros. Tente ajustar os critérios de busca.
             </p>
           </div>

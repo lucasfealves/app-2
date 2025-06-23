@@ -82,9 +82,9 @@ export default function ProductCard({ product }: ProductCardProps) {
     : 0;
 
   return (
-    <Card className="group bg-white rounded-2xl material-shadow-1 hover:material-shadow-3 transition-all duration-300 overflow-hidden border-0">
+    <Card className="group bg-card rounded-2xl material-shadow-1 hover:material-shadow-3 transition-all duration-300 overflow-hidden border-0">
       {/* Product Image */}
-      <div className="relative aspect-[4/3] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+      <div className="relative aspect-[4/3] bg-gradient-to-br from-muted/50 to-muted overflow-hidden">
         {product.imageUrl ? (
           <img 
             src={product.imageUrl} 
@@ -92,7 +92,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400">
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
             <ShoppingCart className="h-12 w-12" />
           </div>
         )}
@@ -112,8 +112,8 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Stock Status */}
         {product.stock === 0 && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
-            <div className="bg-white rounded-lg px-4 py-2">
-              <span className="text-gray-900 font-medium">Fora de Estoque</span>
+            <div className="bg-card rounded-lg px-4 py-2">
+              <span className="text-card-foreground font-medium">Fora de Estoque</span>
             </div>
           </div>
         )}
@@ -122,7 +122,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="absolute top-3 right-3">
           <FavoriteButton 
             productId={product.id} 
-            className="bg-white/90 hover:bg-white shadow-lg border-0"
+            className="bg-card/90 hover:bg-card shadow-lg border-0"
           />
         </div>
 
@@ -133,11 +133,11 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Brand & Category */}
         {product.brand && (
           <div className="flex items-center justify-between">
-            <Badge variant="outline" className="text-xs font-medium text-blue-600 border-blue-200 bg-blue-50">
+            <Badge variant="outline" className="text-xs font-medium text-primary border-primary/20 bg-primary/10">
               {product.brand.name}
             </Badge>
             {product.stock > 0 && product.stock <= 5 && (
-              <span className="text-xs text-orange-600 font-medium">Últimas unidades</span>
+              <span className="text-xs text-material-orange font-medium">Últimas unidades</span>
             )}
           </div>
         )}
@@ -145,12 +145,12 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Product Info */}
         <div>
           <Link href={`/product/${product.id}`}>
-            <h3 className="text-base font-semibold text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors cursor-pointer">
+            <h3 className="text-base font-semibold text-card-foreground line-clamp-2 hover:text-primary transition-colors cursor-pointer">
               {product.name}
             </h3>
           </Link>
           {product.shortDescription && (
-            <p className="text-sm text-gray-600 line-clamp-2 mt-1 leading-relaxed">
+            <p className="text-sm text-muted-foreground line-clamp-2 mt-1 leading-relaxed">
               {product.shortDescription}
             </p>
           )}
@@ -159,29 +159,29 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Rating & Reviews */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-1">
-            <div className="flex text-yellow-400">
+            <div className="flex text-material-amber">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className="h-3.5 w-3.5 fill-current" />
               ))}
             </div>
-            <span className="text-xs text-gray-500 ml-1">(127)</span>
+            <span className="text-xs text-muted-foreground ml-1">(127)</span>
           </div>
-          <span className="text-xs text-green-600 font-medium">Frete Grátis</span>
+          <span className="text-xs text-material-green font-medium">Frete Grátis</span>
         </div>
 
         {/* Price */}
         <div className="space-y-1">
           <div className="flex items-center space-x-2">
-            <span className="text-xl font-bold text-gray-900">
+            <span className="text-xl font-bold text-card-foreground">
               R$ {parseFloat(product.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </span>
             {product.originalPrice && (
-              <span className="text-sm text-gray-500 line-through">
+              <span className="text-sm text-muted-foreground line-through">
                 R$ {parseFloat(product.originalPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             )}
           </div>
-          <p className="text-xs text-gray-600">
+          <p className="text-xs text-muted-foreground">
             ou 12x de R$ {(parseFloat(product.price) / 12).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} sem juros
           </p>
         </div>
@@ -191,7 +191,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <Button 
             onClick={handleAddToCart}
             disabled={product.stock === 0 || addToCartMutation.isPending}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-xl transition-colors"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 rounded-xl transition-colors"
             size="sm"
           >
             {addToCartMutation.isPending ? (
@@ -207,7 +207,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             )}
           </Button>
           <Link href={`/product/${product.id}`} className="block">
-            <Button variant="outline" className="w-full border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl">
+            <Button variant="outline" className="w-full rounded-xl">
               Ver Detalhes
             </Button>
           </Link>

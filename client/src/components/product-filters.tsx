@@ -55,7 +55,7 @@ export default function ProductFilters({
               variant="ghost" 
               size="sm" 
               onClick={handleClearFilters}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-muted-foreground hover:text-foreground"
             >
               <X className="h-4 w-4 mr-1" />
               Limpar
@@ -67,7 +67,7 @@ export default function ProductFilters({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
           {/* Search */}
           <div className="lg:col-span-2">
-            <Label htmlFor="search" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="search" className="text-sm font-medium text-foreground">
               Buscar
             </Label>
             <div className="relative mt-1">
@@ -79,13 +79,13 @@ export default function ProductFilters({
                 onChange={(e) => onFiltersChange({ search: e.target.value })}
                 className="pl-10"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
           </div>
 
           {/* Category */}
           <div>
-            <Label className="text-sm font-medium text-gray-700">
+            <Label className="text-sm font-medium text-foreground">
               Categoria
             </Label>
             <Select 
@@ -108,7 +108,7 @@ export default function ProductFilters({
 
           {/* Brand */}
           <div>
-            <Label className="text-sm font-medium text-gray-700">
+            <Label className="text-sm font-medium text-foreground">
               Marca
             </Label>
             <Select 
@@ -131,7 +131,7 @@ export default function ProductFilters({
 
           {/* Sort */}
           <div>
-            <Label className="text-sm font-medium text-gray-700">
+            <Label className="text-sm font-medium text-foreground">
               Ordenar por
             </Label>
             <Select 
@@ -155,7 +155,7 @@ export default function ProductFilters({
 
           {/* Price Range */}
           <div>
-            <Label className="text-sm font-medium text-gray-700">
+            <Label className="text-sm font-medium text-foreground">
               Faixa de Preço
             </Label>
             <div className="flex space-x-2 mt-1">
