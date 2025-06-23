@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import Navbar from "@/components/navbar";
 import ProductCard from "@/components/product-card";
 import ProductFilters from "@/components/product-filters";
@@ -8,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, ShoppingCart } from "lucide-react";
 
 export default function Catalog() {
+  const [location] = useLocation();
   const [filters, setFilters] = useState({
     categoryId: "all",
     brandId: "all",
@@ -19,6 +21,19 @@ export default function Catalog() {
     page: 1,
     limit: 20
   });
+
+  // Extract search parameters from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const searchParam = params.get('search');
+    
+    if (searchParam) {
+      setFilters(prev => ({
+        ...prev,
+        search: searchParam
+      }));
+    }
+  }, [location]);
 
   const { data: products, isLoading, error } = useQuery({
     queryKey: ['/api/products', filters],
