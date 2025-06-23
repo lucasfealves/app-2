@@ -34,16 +34,36 @@ CREATE DATABASE rest_express_db;
 
 3. Configure a variável de ambiente:
 ```bash
+# Linux/macOS
 export DATABASE_URL="postgresql://usuario:senha@localhost:5432/rest_express_db"
+
+# Windows PowerShell
+$env:DATABASE_URL = "postgresql://usuario:senha@localhost:5432/rest_express_db"
+
+# Windows CMD
+set DATABASE_URL=postgresql://usuario:senha@localhost:5432/rest_express_db
 ```
 
-#### Opção B: Neon (PostgreSQL na nuvem)
+#### Opção B: Neon (PostgreSQL na nuvem) - **Recomendado**
 1. Crie uma conta no [Neon](https://neon.tech)
 2. Crie um novo projeto
 3. Copie a string de conexão fornecida
 4. Configure a variável:
 ```bash
-export DATABASE_URL="sua-string-de-conexao-neon"
+# Linux/macOS
+export DATABASE_URL="postgresql://usuario:senha@host.neon.tech/database?sslmode=require"
+
+# Windows PowerShell
+$env:DATABASE_URL = "postgresql://usuario:senha@host.neon.tech/database?sslmode=require"
+
+# Windows CMD
+set DATABASE_URL=postgresql://usuario:senha@host.neon.tech/database?sslmode=require
+```
+
+#### Script Automatizado para Windows
+Para facilitar a configuração no Windows, use:
+```powershell
+./setup-db.ps1
 ```
 
 ### 4. Execute as Migrações do Banco
@@ -112,11 +132,37 @@ Abra seu navegador e acesse: `http://localhost:5000`
 
 ## 🔧 Variáveis de Ambiente
 
-As seguintes variáveis são configuradas automaticamente pelos scripts de desenvolvimento:
-
-- `NODE_ENV=development` - Ambiente de execução
-- `PORT=5000` - Porta do servidor
+### Obrigatórias
 - `DATABASE_URL` - String de conexão com PostgreSQL
+
+### Configuradas automaticamente pelos scripts
+- `NODE_ENV=development` - Ambiente de execução  
+- `PORT=5000` - Porta do servidor
+
+### Solucionando o erro "getaddrinfo ENOTFOUND base"
+
+Este erro ocorre quando a `DATABASE_URL` não está configurada ou está inválida. Para resolver:
+
+1. **Verifique se a DATABASE_URL está definida:**
+```bash
+# Windows PowerShell
+echo $env:DATABASE_URL
+
+# Windows CMD  
+echo %DATABASE_URL%
+
+# Linux/macOS
+echo $DATABASE_URL
+```
+
+2. **Configure corretamente a DATABASE_URL:**
+   - Para PostgreSQL local: `postgresql://usuario:senha@localhost:5432/database`
+   - Para Neon: `postgresql://usuario:senha@host.neon.tech/database?sslmode=require`
+
+3. **Use o script de configuração automatizada (Windows):**
+```powershell
+./setup-db.ps1
+```
 
 ## 🐳 Docker (Opcional)
 
