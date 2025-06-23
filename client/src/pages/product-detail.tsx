@@ -23,6 +23,7 @@ import {
   RotateCcw,
   CreditCard
 } from "lucide-react";
+import FavoriteButton from "@/components/favorite-button";
 
 export default function ProductDetail() {
   const params = useParams();
@@ -203,9 +204,12 @@ export default function ProductDetail() {
               
               {/* Desktop Actions */}
               <div className="absolute top-4 right-4 hidden lg:flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button size="icon" variant="secondary" className="bg-card/95 hover:bg-card shadow-lg">
-                  <Heart className="h-4 w-4" />
-                </Button>
+                <FavoriteButton 
+                  productId={parseInt(productId!)} 
+                  variant="ghost" 
+                  size="icon"
+                  className="bg-card/95 hover:bg-card shadow-lg"
+                />
                 <Button size="icon" variant="secondary" className="bg-card/95 hover:bg-card shadow-lg">
                   <Share2 className="h-4 w-4" />
                 </Button>
@@ -314,10 +318,11 @@ export default function ProductDetail() {
                     </div>
                   )}
                 </Button>
-                <Button variant="outline" className="py-3 rounded-xl h-auto">
-                  <Heart className="h-5 w-5 mr-2" />
-                  Favoritar
-                </Button>
+                <FavoriteButton 
+                  productId={parseInt(productId!)} 
+                  variant="outline" 
+                  className="py-3 rounded-xl h-auto"
+                />
               </div>
             </div>
 

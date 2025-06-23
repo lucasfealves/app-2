@@ -115,6 +115,11 @@ export default function FavoriteButton({
             : "text-gray-500 hover:text-red-500"
         } ${toggleFavoriteMutation.isPending ? "animate-pulse" : ""}`}
       />
+      {size !== "icon" && (
+        <span className="ml-2">
+          {favoriteStatus ? "Remover dos favoritos" : "Favoritar"}
+        </span>
+      )}
     </Button>
   );
 }
