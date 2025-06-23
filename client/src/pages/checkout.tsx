@@ -68,6 +68,7 @@ export default function Checkout() {
   const [orderStep, setOrderStep] = useState(1); // 1: shipping, 2: payment, 3: confirmation
   const [pixTimer, setPixTimer] = useState(0); // Timer in seconds
   const [pixExpired, setPixExpired] = useState(false);
+  const [cepFound, setCepFound] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -557,7 +558,10 @@ export default function Checkout() {
                                             shippingForm.setValue('city', result.city);
                                             shippingForm.setValue('address', result.street);
                                             shippingForm.setValue('neighborhood', result.neighborhood);
+                                            setCepFound(true);
                                           }
+                                        } else {
+                                          setCepFound(false);
                                         }
                                       }}
                                     />
@@ -574,6 +578,7 @@ export default function Checkout() {
                                             shippingForm.setValue('city', result.city);
                                             shippingForm.setValue('address', result.street);
                                             shippingForm.setValue('neighborhood', result.neighborhood);
+                                            setCepFound(true);
                                           }
                                         }
                                       }}
@@ -600,13 +605,38 @@ export default function Checkout() {
                               <FormItem>
                                 <FormLabel>Estado</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="SP" {...field} />
+                                  <Input 
+                                    placeholder="SP" 
+                                    {...field} 
+                                    disabled={cepFound}
+                                    className={cepFound ? "bg-gray-100" : ""}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
                         </div>
+
+                        {cepFound && (
+                          <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center space-x-2">
+                              <Check className="h-4 w-4 text-green-600" />
+                              <span className="text-sm text-green-700">
+                                Endereço preenchido automaticamente pelo CEP
+                              </span>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setCepFound(false)}
+                              className="text-xs h-8"
+                            >
+                              Editar manualmente
+                            </Button>
+                          </div>
+                        )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <FormField
@@ -616,7 +646,12 @@ export default function Checkout() {
                               <FormItem>
                                 <FormLabel>Cidade</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="Sua cidade" {...field} />
+                                  <Input 
+                                    placeholder="Sua cidade" 
+                                    {...field} 
+                                    disabled={cepFound}
+                                    className={cepFound ? "bg-gray-100" : ""}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -630,7 +665,12 @@ export default function Checkout() {
                               <FormItem>
                                 <FormLabel>Bairro</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="Seu bairro" {...field} />
+                                  <Input 
+                                    placeholder="Seu bairro" 
+                                    {...field} 
+                                    disabled={cepFound}
+                                    className={cepFound ? "bg-gray-100" : ""}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -645,7 +685,12 @@ export default function Checkout() {
                             <FormItem>
                               <FormLabel>Endereço</FormLabel>
                               <FormControl>
-                                <Input placeholder="Rua, Avenida, etc." {...field} />
+                                <Input 
+                                  placeholder="Rua, Avenida, etc." 
+                                  {...field} 
+                                  disabled={cepFound}
+                                  className={cepFound ? "bg-gray-100" : ""}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
