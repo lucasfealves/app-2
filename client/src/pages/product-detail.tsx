@@ -321,6 +321,7 @@ export default function ProductDetail() {
                 <FavoriteButton 
                   productId={parseInt(productId!)} 
                   variant="outline" 
+                  size="default"
                   className="py-3 rounded-xl h-auto"
                 />
               </div>
