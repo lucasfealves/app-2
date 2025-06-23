@@ -35,6 +35,9 @@ async function main() {
   try {
     // Drop all tables to start fresh
     await pool.query(`
+      DROP TABLE IF EXISTS favorites CASCADE;
+      DROP TABLE IF EXISTS payment_settings CASCADE;
+      DROP TABLE IF EXISTS site_settings CASCADE;
       DROP TABLE IF EXISTS payments CASCADE;
       DROP TABLE IF EXISTS order_items CASCADE;
       DROP TABLE IF EXISTS orders CASCADE;
@@ -192,6 +195,43 @@ async function main() {
       );
     `);
 
+    // Create payment_settings table
+    await pool.query(`
+      CREATE TABLE payment_settings (
+        id SERIAL PRIMARY KEY,
+        provider VARCHAR(50) NOT NULL UNIQUE,
+        config JSONB NOT NULL,
+        is_active BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Create favorites table
+    await pool.query(`
+      CREATE TABLE favorites (
+        id SERIAL PRIMARY KEY,
+        user_id TEXT REFERENCES users(id) NOT NULL,
+        product_id INTEGER REFERENCES products(id) NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(user_id, product_id)
+      );
+    `);
+
+    // Create site_settings table
+    await pool.query(`
+      CREATE TABLE site_settings (
+        id SERIAL PRIMARY KEY,
+        site_name TEXT DEFAULT 'E-Commerce',
+        primary_color TEXT DEFAULT '#2563eb',
+        secondary_color TEXT DEFAULT '#7c3aed',
+        hero_title TEXT DEFAULT 'Bem-vindo à nossa loja',
+        hero_description TEXT DEFAULT 'Encontre os melhores produtos com os melhores preços',
+        features TEXT[] DEFAULT ARRAY['Entrega rápida', 'Produtos de qualidade', 'Suporte 24/7'],
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
     // Create default admin user
     const adminEmail = 'admin@example.com';
     const adminId = crypto.randomUUID();
@@ -230,6 +270,12 @@ async function main() {
       ('Tênis Air Max', 'tenis-air-max', 'Tênis Nike Air Max para corrida', 'Conforto e performance', 299.99, 399.99, 100, 4, 3, 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400', true),
       ('Camiseta Adidas', 'camiseta-adidas', 'Camiseta esportiva Adidas', 'Tecido respirável', 89.99, 119.99, 200, 2, 4, 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400', true),
       ('Mesa de Escritório', 'mesa-escritorio', 'Mesa de escritório IKEA', 'Design moderno e funcional', 399.99, 499.99, 25, 3, 5, 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400', true);
+    `);
+
+    // Insert default site settings
+    await pool.query(`
+      INSERT INTO site_settings (site_name, primary_color, secondary_color, hero_title, hero_description, features) VALUES
+      ('E-Commerce', '#2563eb', '#7c3aed', 'Bem-vindo à nossa loja', 'Encontre os melhores produtos com os melhores preços', ARRAY['Entrega rápida', 'Produtos de qualidade', 'Suporte 24/7']);
     `);
 
     console.log('✅ Default admin user created (admin@example.com / admin123)');

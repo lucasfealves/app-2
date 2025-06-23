@@ -17,10 +17,7 @@ export default function Home() {
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="text-center mb-12">
-          <h1 
-            className="text-4xl font-bold mb-4"
-            style={{ color: siteSettings?.primaryColor || '#1f2937' }}
-          >
+          <h1 className="text-4xl font-bold mb-4 text-dynamic-primary">
             {siteSettings?.heroTitle || (user ? `Bem-vindo de volta, ${user.firstName || 'Cliente'}!` : 'Bem-vindo à nossa loja')}
           </h1>
           <p className="text-xl text-gray-600 mb-8">
@@ -29,21 +26,7 @@ export default function Home() {
           <Link href="/catalog">
             <Button 
               size="lg" 
-              className="text-primary-foreground"
-              style={{ 
-                backgroundColor: siteSettings?.primaryColor || '#2563eb',
-                borderColor: siteSettings?.primaryColor || '#2563eb'
-              }}
-              onMouseEnter={(e) => {
-                if (siteSettings?.secondaryColor) {
-                  e.currentTarget.style.backgroundColor = siteSettings.secondaryColor;
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (siteSettings?.primaryColor) {
-                  e.currentTarget.style.backgroundColor = siteSettings.primaryColor;
-                }
-              }}
+              className="bg-dynamic-primary hover:bg-dynamic-secondary text-white border-dynamic-primary transition-colors duration-200"
             >
               <ShoppingCart className="mr-2 h-5 w-5" />
               Explorar Catálogo
@@ -152,9 +135,9 @@ export default function Home() {
             const icons = [Truck, Shield, Heart];
             const Icon = icons[index];
             const colors = [
-              { bg: 'bg-primary/10', text: 'text-primary' },
+              { bg: 'bg-dynamic-primary-light', text: 'text-dynamic-primary' },
               { bg: 'bg-green-100', text: 'text-green-600' },
-              { bg: 'bg-purple-100', text: 'text-purple-600' }
+              { bg: 'bg-dynamic-primary-medium', text: 'text-dynamic-secondary' }
             ];
             
             return (

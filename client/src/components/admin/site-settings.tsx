@@ -224,6 +224,9 @@ export default function SiteSettings() {
                 style={{ backgroundColor: formData.secondaryColor }}
               />
             </div>
+            <p className="text-xs text-gray-500 mt-2">
+              As cores serão aplicadas automaticamente em toda a aplicação após salvar
+            </p>
           </div>
         </CardContent>
       </Card>

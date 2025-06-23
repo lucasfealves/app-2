@@ -43,10 +43,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/">
             <div className="flex items-center space-x-2 cursor-pointer">
-              <ShoppingCart 
-                className="h-8 w-8" 
-                style={{ color: siteSettings?.primaryColor || '#2563eb' }}
-              />
+              <ShoppingCart className="h-8 w-8 text-dynamic-primary" />
               <span className="text-xl font-bold text-foreground">
                 {siteSettings?.siteName || 'E-Commerce'}
               </span>
@@ -56,7 +53,7 @@ export default function Navbar() {
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
             <Link href="/catalog">
-              <Button variant="ghost" className="text-foreground hover:text-primary">
+              <Button variant="ghost" className="text-foreground hover:text-dynamic-primary">
                 Catálogo
               </Button>
             </Link>

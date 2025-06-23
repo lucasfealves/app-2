@@ -67,6 +67,48 @@
 }
 
 @layer utilities {
+  .text-dynamic-primary {
+    color: var(--color-primary, #2563eb);
+  }
+  
+  .bg-dynamic-primary {
+    background-color: var(--color-primary, #2563eb);
+  }
+  
+  .border-dynamic-primary {
+    border-color: var(--color-primary, #2563eb);
+  }
+  
+  .text-dynamic-secondary {
+    color: var(--color-secondary, #7c3aed);
+  }
+  
+  .bg-dynamic-secondary {
+    background-color: var(--color-secondary, #7c3aed);
+  }
+  
+  .border-dynamic-secondary {
+    border-color: var(--color-secondary, #7c3aed);
+  }
+  
+  .bg-dynamic-primary-light {
+    background-color: rgba(var(--primary-light, 37, 99, 235, 0.1));
+  }
+  
+  .bg-dynamic-primary-medium {
+    background-color: rgba(var(--primary-medium, 37, 99, 235, 0.2));
+  }
+
+  .hover\:bg-dynamic-primary:hover {
+    background-color: var(--color-primary, #2563eb);
+  }
+
+  .hover\:bg-dynamic-secondary:hover {
+    background-color: var(--color-secondary, #7c3aed);
+  }
+}
+
+@layer utilities {
   .material-shadow-1 {
     box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
   }
