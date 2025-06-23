@@ -108,7 +108,7 @@ export default function FavoritesPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      const response = await fetch('/api/cart/add', {
+      const response = await fetch('/api/cart/items', {
         method: 'POST',
         headers,
         credentials: 'include',
