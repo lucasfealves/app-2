@@ -66,9 +66,13 @@ Para facilitar a configuração no Windows, use:
 ./setup-db.ps1
 ```
 
-### 4. Execute as Migrações do Banco
+### 4. Teste e Configure o Banco
 
 ```bash
+# Teste a conexão primeiro
+node db-test.js
+
+# Se funcionou, aplique o schema
 npm run db:push
 ```
 

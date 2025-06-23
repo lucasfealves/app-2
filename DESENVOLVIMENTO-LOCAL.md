@@ -34,8 +34,12 @@ set DATABASE_URL=postgresql://usuario:senha@host.neon.tech/database?sslmode=requ
 export DATABASE_URL="postgresql://usuario:senha@host.neon.tech/database?sslmode=require"
 ```
 
-### 3. Aplique o schema do banco
+### 3. Teste e configure o banco
 ```bash
+# Teste a conexão primeiro
+node db-test.js
+
+# Se funcionou, aplique o schema
 npm run db:push
 ```
 
@@ -87,13 +91,14 @@ npm run dev
 npm install
 ```
 
-### ❌ Erro de conexão com banco
-**Causa:** Credenciais incorretas ou banco inacessível
+### ❌ Erro de conexão com banco / WebSocket ECONNREFUSED
+**Causa:** Credenciais incorretas, banco inacessível ou problema com WebSocket
 
 **Solução:**
-1. Verifique se o PostgreSQL está rodando (se local)
-2. Teste a connection string manualmente
+1. Teste a conexão: `node db-test.js`
+2. Verifique se o PostgreSQL está rodando (se local)
 3. Para Neon: verifique se o banco não está em sleep
+4. Configuração WebSocket foi ajustada automaticamente para desenvolvimento local
 
 ## Scripts Disponíveis
 
@@ -101,6 +106,7 @@ npm install
 - `./dev.ps1` - Windows PowerShell com verificações  
 - `dev.bat` - Windows CMD com verificações
 - `./setup-db.ps1` - Configuração automatizada do banco (Windows)
+- `node db-test.js` - Testar conexão com banco
 - `npm run dev` - Comando direto
 - `npm run db:push` - Aplicar schema do banco
 

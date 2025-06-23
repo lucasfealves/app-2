@@ -57,10 +57,15 @@ Write-Host "Testando conexão com banco de dados..." -ForegroundColor Yellow
 
 # Testar conexão executando db:push
 try {
-    Write-Host "Aplicando schema do banco..." -ForegroundColor Cyan
-    & npm run db:push
+    Write-Host "Testando conexão..." -ForegroundColor Cyan
+    $env:NODE_ENV = "development"
+    & node db-test.js
     
     if ($LASTEXITCODE -eq 0) {
+        Write-Host ""
+        Write-Host "Aplicando schema do banco..." -ForegroundColor Cyan
+        & npm run db:push
+        
         Write-Host ""
         Write-Host "✅ Banco de dados configurado com sucesso!" -ForegroundColor Green
         Write-Host ""

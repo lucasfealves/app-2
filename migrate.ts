@@ -5,7 +5,18 @@ import ws from "ws";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 
+// Configure neon for development/migration
 neonConfig.webSocketConstructor = ws;
+
+// For local development, disable WebSocket to avoid connection issues
+if (!process.env.REPL_ID && process.env.NODE_ENV === 'development') {
+  neonConfig.useSecureWebSocket = false;
+  neonConfig.pipelineConnect = false;
+  neonConfig.pipelineTLS = false;
+} else {
+  neonConfig.useSecureWebSocket = true;
+  neonConfig.pipelineConnect = false;
+}
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL must be set");
